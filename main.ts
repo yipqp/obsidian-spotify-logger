@@ -1,6 +1,7 @@
 import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { getAuthUrl, handleAuth, getCurrentlyPlayingTrack } from "api";
 import { FolderSuggest } from "FolderSuggest";
+import { logSong } from "SpotifyLogger";
 
 interface MyPluginSettings {
 	spotifyLoggerFolderPath: string;
@@ -26,6 +27,7 @@ export default class SpotifyLogger extends Plugin {
 				console.log("log current playing track");
 				const data = await getCurrentlyPlayingTrack();
 				console.log(data);
+				logSong(this.app, this.settings.spotifyLoggerFolderPath, data);
 			},
 		});
 

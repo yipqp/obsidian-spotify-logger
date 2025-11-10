@@ -89,5 +89,6 @@ export const getCurrentlyPlayingTrack = async () => {
 	);
 
 	const data = await response.json(); // TODO: error checking?
-	return data;
+	const item = data.item;
+	return item;
 };
