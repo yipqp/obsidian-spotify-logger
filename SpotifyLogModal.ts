@@ -1,6 +1,4 @@
-import { getCurrentlyPlayingTrack } from "api";
 import { App, Modal, Setting } from "obsidian";
-import { logSong } from "SpotifyLogger";
 
 export class SpotifyLogModal extends Modal {
 	constructor(app: App, onSubmit: (result: string) => void) {
@@ -11,9 +9,15 @@ export class SpotifyLogModal extends Modal {
 		// use text or textArea?
 		const inputSetting = new Setting(this.contentEl).addText((text) => {
 			text.inputEl.addClass("spotifyLogModalInput");
+			text.inputEl.addEventListener("keydown", (event) => {
+				if (!event.isComposing && event.key === "Enter") {
+					event.preventDefault();
+					onSubmit(input);
+					this.close();
+				}
+			});
 			text.onChange((value) => {
 				input = value;
-				console.log(name);
 			});
 		});
 
@@ -24,7 +28,7 @@ export class SpotifyLogModal extends Modal {
 			btn
 				.setButtonText("Save")
 				.setCta() // "set call to action" (changes button style)
-				.onClick(async () => {
+				.onClick(() => {
 					onSubmit(input);
 					this.close();
 				}),

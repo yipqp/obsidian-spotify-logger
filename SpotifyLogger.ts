@@ -13,7 +13,6 @@ const formatInput = (input: String, progressMs: string) => {
 		progress = moment.utc(progressAsInt).format("mm:ss");
 	}
 
-	console.log(progress);
 	const surroundChar = "**";
 	const formattedinput = `${surroundChar}${date}${surroundChar}
 
@@ -104,8 +103,6 @@ export const logSong = async (
 ) => {
 	const song = currentlyPlaying.item;
 	const progressMs = currentlyPlaying.progress_ms;
-
-	console.log("progress " + progressMs);
 
 	const file = await createSongFile(app, folderPath, song);
 	const filePath = file.path;
