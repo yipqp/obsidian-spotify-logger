@@ -1,4 +1,3 @@
-import { getCurrentlyPlayingTrack } from "api";
 import { App, normalizePath, moment } from "obsidian";
 
 const formatInput = (input: String, progressMs: string) => {
@@ -74,23 +73,23 @@ export const createSongFile = async (app: App, folderPath: string, song) => {
 				frontmatter["title"] = name; // TODO: let user change which frontmatter should reflect display title?
 				frontmatter["artists"] = artists;
 				frontmatter["album"] = album;
-				frontmatter["log count"] = 1;
+				// frontmatter["log count"] = 1;
 				frontmatter["aliases"] = name;
 			});
 		} catch (e) {
 			console.log(`Error: ${e}`);
 		}
-	} else {
-		try {
-			app.fileManager.processFrontMatter(
-				file,
-				(frontmatter) => (frontmatter["log count"] += 1),
-			);
-			await new Promise((r) => setTimeout(r, 10)); // TODO: find a different workaround?? this was added to prevent "note modified externally, merging changes automatically"
-		} catch (e) {
-			console.log(`Error: ${e}`);
-		}
-	}
+	} // else {
+	// 	try {
+	// 		app.fileManager.processFrontMatter(
+	// 			file,
+	// 			(frontmatter) => (frontmatter["log count"] += 1),
+	// 		);
+	// 		await new Promise((r) => setTimeout(r, 10)); // TODO: find a different workaround?? this was added to prevent "note modified externally, merging changes automatically"
+	// 	} catch (e) {
+	// 		console.log(`Error: ${e}`);
+	// 	}
+	// }
 
 	return file;
 };

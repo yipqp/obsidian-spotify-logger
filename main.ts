@@ -1,19 +1,19 @@
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { getAuthUrl, getCurrentlyPlayingTrack, handleAuth } from "api";
 import { FolderSuggest } from "FolderSuggest";
 import { SpotifyLogModal } from "SpotifyLogModal";
 import { logSong } from "SpotifyLogger";
 
-interface MyPluginSettings {
+interface defaultSettings {
 	spotifyLoggerFolderPath: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: defaultSettings = {
 	spotifyLoggerFolderPath: "songs/",
 };
 
 export default class SpotifyLogger extends Plugin {
-	settings: MyPluginSettings;
+	settings: defaultSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -26,6 +26,14 @@ export default class SpotifyLogger extends Plugin {
 			name: "Log current playing track",
 			callback: async () => {
 				const currentlyPlaying = await getCurrentlyPlayingTrack();
+				if (currentlyPlaying?.error) {
+					let message = `Error: ${currentlyPlaying.error.message}`;
+					if (currentlyPlaying.error.status === 401) {
+						message += "\nPlease connect your Spotify account";
+					}
+					new Notice(`${message}`, 3000);
+					return;
+				}
 				new SpotifyLogModal(this.app, async (result: string) => {
 					await logSong(
 						this.app,
@@ -37,8 +45,22 @@ export default class SpotifyLogger extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "connect-spotify",
+			name: "Connect Spotify",
+			callback: async () => {
+				const authUrl = await getAuthUrl();
+				if (!authUrl) {
+					// do something
+					console.log("Error: auth url missing?");
+					return;
+				}
+				window.open(authUrl);
+			},
+		});
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SettingTab(this.app, this));
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
@@ -61,7 +83,7 @@ export default class SpotifyLogger extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class SettingTab extends PluginSettingTab {
 	plugin: SpotifyLogger;
 
 	constructor(app: App, plugin: SpotifyLogger) {
@@ -75,10 +97,9 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Authenticate Spotify")
-			.setDesc("Connect Spotify Account")
+			.setName("Connect Spotify")
 			.addButton((button) =>
-				button.setButtonText("Authorize").onClick(async () => {
+				button.setButtonText("Connect").onClick(async () => {
 					const authUrl = await getAuthUrl();
 					if (!authUrl) {
 						// do something
@@ -101,7 +122,7 @@ class SampleSettingTab extends PluginSettingTab {
 			search
 				.setPlaceholder("Enter folder path")
 				.setValue(this.plugin.settings.spotifyLoggerFolderPath)
-				.onChange(saveFolderPath); // <-- ignores folder suggestion
+				.onChange(saveFolderPath); // ignores folder suggestion
 
 			const fs = new FolderSuggest(this.app, search.inputEl);
 

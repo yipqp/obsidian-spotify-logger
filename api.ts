@@ -1,6 +1,6 @@
 // pkce reference: https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
 
-import { ObsidianProtocolData } from "obsidian";
+import { Notice, ObsidianProtocolData } from "obsidian";
 import { generateRandomString, sha256, base64encode } from "utils";
 
 const clientId = "44e32ffa3b9c46398637431d6808481d";
@@ -114,7 +114,10 @@ const refreshTokens = async () => {
 };
 
 export const handleAuth = async (data: ObsidianProtocolData) => {
-	// TODO: need to check if code exists?
+	if (data?.error) {
+		new Notice(`Error: ${data.error}`, 3000);
+		return;
+	}
 	const code = data.code;
 	await requestToken(code);
 };
