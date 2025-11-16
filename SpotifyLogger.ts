@@ -1,22 +1,59 @@
-import { App, MarkdownView, normalizePath, moment } from "obsidian";
+import { getCurrentlyPlayingTrack } from "api";
+import { App, normalizePath, moment } from "obsidian";
 
-const appendDate = async (app: App) => {
-	const view = app.workspace.getActiveViewOfType(MarkdownView);
-	const formattedDate = moment().format("D MMM YYYY, h:mma");
-	const surroundChar = "*";
+const formatInput = (input: String, progressMs: string) => {
+	const date = moment().format("D MMM YYYY, h:mma");
+	const progressAsInt = parseInt(progressMs);
+	let progress;
 
-	const replacement = surroundChar + formattedDate + surroundChar + "\n\n\n"; // TODO: make customizable
-	if (view) {
-		const editor = view.editor;
-		editor.replaceRange(replacement, {
-			line: editor.lastLine() + 1,
-			ch: 0,
-		});
-		editor.setCursor(editor.lastLine() - 1);
+	// song is >= 1 hour
+	if (progressAsInt >= 3600000) {
+		progress = moment.utc(progressAsInt).format("HH:mm:ss");
+	} else {
+		progress = moment.utc(progressAsInt).format("mm:ss");
 	}
+
+	console.log(progress);
+	const surroundChar = "**";
+	const formattedinput = `${surroundChar}${date}${surroundChar}
+
+${input}
+*${progress}*
+
+---
+
+`;
+	return formattedinput;
 };
 
-export const logSong = async (app: App, folderPath: string, song) => {
+const appendInput = async (
+	app: App,
+	filePath: string,
+	input: string,
+	progressMs: string,
+) => {
+	const file = app.vault.getFileByPath(filePath);
+	if (!file) {
+		console.log(`Error: file ${filePath} could not be found`);
+		return;
+	}
+	const formattedinput = formatInput(input, progressMs);
+	app.vault.append(file, formattedinput);
+
+	// const view = app.workspace.getActiveViewOfType(MarkdownView);
+	// if (view) {
+	// 	const editor = view.editor;
+	// 	editor.replaceRange(formattedinput, {
+	// 		line: editor.lastLine() + 1,
+	// 		ch: 0,
+	// 	});
+	// 	editor.setCursor(editor.lastLine() - 1);
+	// }
+};
+
+// creates new song file in folder path if not exist
+// returns the song file
+export const createSongFile = async (app: App, folderPath: string, song) => {
 	const album = song.album.name;
 	const albumid = song.album.id;
 	const artists = song.artists.map((artist) => artist.name).join(", ");
@@ -56,13 +93,29 @@ export const logSong = async (app: App, folderPath: string, song) => {
 		}
 	}
 
+	return file;
+};
+
+export const logSong = async (
+	app: App,
+	folderPath: string,
+	input: string,
+	currentlyPlaying,
+) => {
+	const song = currentlyPlaying.item;
+	const progressMs = currentlyPlaying.progress_ms;
+
+	console.log("progress " + progressMs);
+
+	const file = await createSongFile(app, folderPath, song);
+	const filePath = file.path;
+
+	await appendInput(app, filePath, input, progressMs);
+
 	// if file is currently active, don't open file
 	const activeFile = app.workspace.getActiveFile();
 
 	if (!activeFile || activeFile.path != filePath) {
 		await app.workspace.getLeaf().openFile(file);
 	}
-
-	appendDate(app);
-	// Make sure the user is editing a Markdown file.
 };
