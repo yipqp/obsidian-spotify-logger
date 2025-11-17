@@ -3,6 +3,7 @@ import { getAuthUrl, getCurrentlyPlayingTrack, handleAuth } from "api";
 import { FolderSuggest } from "FolderSuggest";
 import { SpotifyLogModal } from "SpotifyLogModal";
 import { logSong } from "SpotifyLogger";
+import { SpotifySearchModal } from "SpotifySearchModal";
 
 interface defaultSettings {
 	spotifyLoggerFolderPath: string;
@@ -56,6 +57,14 @@ export default class SpotifyLogger extends Plugin {
 					return;
 				}
 				window.open(authUrl);
+			},
+		});
+
+		this.addCommand({
+			id: "search-track",
+			name: "Search track",
+			callback: async () => {
+				new SpotifySearchModal(this.app).open();
 			},
 		});
 

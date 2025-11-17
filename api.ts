@@ -1,6 +1,7 @@
 // pkce reference: https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
 
 import { Notice, ObsidianProtocolData } from "obsidian";
+import { URLSearchParams } from "url";
 import { generateRandomString, sha256, base64encode } from "utils";
 
 const clientId = "44e32ffa3b9c46398637431d6808481d";
@@ -143,12 +144,7 @@ const getAccessToken = async () => {
 };
 
 export const getCurrentlyPlayingTrack = async () => {
-	const accessToken = await getAccessToken();
-
-	if (!accessToken) {
-		console.log("Error: user is not authorized");
-		return null;
-	}
+	const accessToken = (await getAccessToken()) ?? "";
 
 	const response = await fetch(
 		"https://api.spotify.com/v1/me/player/currently-playing",
@@ -159,6 +155,33 @@ export const getCurrentlyPlayingTrack = async () => {
 		},
 	);
 
-	const data = await response.json(); // TODO: error checking?
+	const data = await response.json();
+	return data;
+};
+
+export const searchTrack = async (query: string) => {
+	if (!query) {
+		return null;
+	}
+
+	const accessToken = (await getAccessToken()) ?? "";
+
+	const searchURL = new URL("https://api.spotify.com/v1/search");
+
+	const params = {
+		q: query,
+		type: "track",
+		limit: "10",
+	};
+
+	searchURL.search = new URLSearchParams(params).toString();
+
+	const response = await fetch(searchURL.toString(), {
+		headers: {
+			Authorization: "Bearer " + accessToken,
+		},
+	});
+
+	const data = await response.json();
 	return data;
 };

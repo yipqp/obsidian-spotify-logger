@@ -8,7 +8,7 @@ export class SpotifyLogModal extends Modal {
 
 		// use text or textArea?
 		const inputSetting = new Setting(this.contentEl).addText((text) => {
-			text.inputEl.addClass("spotifyLogModalInput");
+			text.inputEl.addClass("spotify-log-modal-input");
 			text.inputEl.addEventListener("keydown", (event) => {
 				if (!event.isComposing && event.key === "Enter") {
 					event.preventDefault();
