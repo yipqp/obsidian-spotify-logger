@@ -1,5 +1,5 @@
 import { processCurrentlyPlayingResponse } from "api";
-import { App, Modal, Setting } from "obsidian";
+import { App, ButtonComponent, Modal, Setting, TextComponent } from "obsidian";
 
 export class SpotifyLogModal extends Modal {
 	constructor(
@@ -10,43 +10,50 @@ export class SpotifyLogModal extends Modal {
 		super(app);
 
 		const songInfo = processCurrentlyPlayingResponse(currentlyPlaying);
+
 		const title = `${songInfo.artists} - ${songInfo.name}`;
 		this.setTitle(title);
 
 		let input = "";
 
-		// use text or textArea?
-		const inputSetting = new Setting(this.contentEl).addText((text) => {
-			text.inputEl.addClass("spotify-log-modal-input");
-			text.inputEl.addEventListener("keydown", (event) => {
-				if (!event.isComposing && event.key === "Enter") {
-					event.preventDefault();
-					onSubmit(input);
-					this.close();
-				}
-			});
-			text.onChange((value) => {
-				input = value;
-			});
+		this.contentEl.addClass("spotify-log-modal-content-container");
+
+		const textComponent = new TextComponent(this.contentEl);
+
+		textComponent.inputEl.addClass("spotify-log-modal-input");
+		textComponent.inputEl.addEventListener("keydown", (event) => {
+			if (!event.isComposing && event.key === "Enter") {
+				event.preventDefault();
+				onSubmit(input);
+				this.close();
+			}
+		});
+		textComponent.onChange((value) => {
+			console.log(input);
+			input = value;
 		});
 
-		inputSetting.settingEl.addClass("spotify-log-modal-input-container");
-		inputSetting.settingEl.createEl("div", {
+		this.contentEl.createEl("div", {
 			text: songInfo.progress,
 			cls: "spotify-log-modal-progress",
 		});
 
-		// remove because prevents text area from taking full width
-		inputSetting.infoEl.remove();
-
-		new Setting(this.contentEl).addButton((btn) =>
-			btn
-				.setButtonText("Save")
-				.setCta() // "set call to action" (changes button style)
-				.onClick(() => {
-					onSubmit(input);
-					this.close();
-				}),
+		const buttonContainer = this.contentEl.createDiv(
+			"spotify-log-modal-button-container",
 		);
+
+		const searchButton = new ButtonComponent(buttonContainer)
+			.setButtonText("Search song")
+			.onClick(() => {
+				console.log("searching");
+			});
+
+		const saveButton = new ButtonComponent(buttonContainer)
+			.setButtonText("Save")
+			.setCta()
+			.onClick(() => {
+				onSubmit(input);
+				this.close();
+			});
 	}
 }

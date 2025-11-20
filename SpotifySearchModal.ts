@@ -40,11 +40,13 @@ export class SpotifySearchModal extends SuggestModal<Song> {
 		[query: string, cb: (songs: Song[]) => void],
 		void
 	>;
+	cb; // TODO: type cb
 
-	constructor(app: App) {
+	constructor(app: App, cb) {
 		super(app);
 		this.isLoading = false;
 		this.lastQuery = "";
+		this.cb = cb;
 		this.searchDebouncer = debounce(
 			async (query: string, cb: (songs: Song[]) => void) => {
 				if (query === "" || query === this.lastQuery) {
@@ -117,5 +119,6 @@ export class SpotifySearchModal extends SuggestModal<Song> {
 
 	onChooseSuggestion(song: Song, evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${song.name}`);
+		this.cb();
 	}
 }
