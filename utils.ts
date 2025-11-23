@@ -1,4 +1,5 @@
 import { moment } from "obsidian";
+import { TrackFormatted } from "types";
 
 export const generateRandomString = (length: number) => {
 	const possible =
@@ -44,4 +45,14 @@ export const generateBlockID = (idLen: number): string => {
 	}
 
 	return id;
+};
+
+export const parseTrackAsWikilink = (
+	track: TrackFormatted,
+	embedLinkedContent?: boolean,
+	blockId?: string,
+): string => {
+	const prefix = embedLinkedContent ? "!" : "";
+	const blockIdFormatted = blockId ? `#^${blockId}` : "";
+	return `${prefix}[[${track.id}${blockIdFormatted}|${track.name}]]`;
 };

@@ -15,7 +15,7 @@ import {
 import { appendInput, createSongFile } from "SpotifyLogger";
 import { SpotifySearchModal } from "SpotifySearchModal";
 import { PlaybackState, Song, Track, TrackFormatted } from "types";
-import { generateBlockID } from "utils";
+import { generateBlockID, parseTrackAsWikilink } from "utils";
 
 export class SpotifyLogModal extends Modal {
 	private blockId: string;
@@ -73,6 +73,12 @@ export class SpotifyLogModal extends Modal {
 		);
 
 		const onChooseSuggestionCb = async (track: TrackFormatted) => {
+			if (!this.track || !this.track.progress) {
+				//TODO: better handling
+				console.log("cur track not available");
+				return;
+			}
+
 			console.log("searching from log modal");
 
 			const songFile = await createSongFile(
@@ -81,29 +87,26 @@ export class SpotifyLogModal extends Modal {
 				track,
 			);
 
-			const refTrackMdLink = `[[${track.id}|${track.name}]]`; //TODO: edit display?
+			const refTrackMdLink = parseTrackAsWikilink(track);
+
 			textComponent.setValue(textComponent.getValue() + refTrackMdLink);
 			input = textComponent.getValue();
 
 			this.blockId = generateBlockID(6); // TODO: make sure to clear after using. better design?
 
-			const curBlockMdLink = `![[${this.track?.id}#^${this.blockId}]]`;
-			console.log("curBlockMdLink: ", curBlockMdLink);
+			const curBlockMdLink = parseTrackAsWikilink(
+				this.track,
+				true,
+				this.blockId,
+			);
 
-			const curTrackMdLink = `[[${this.track?.id}|${this.track?.name}]]`; // TODO: make helper function to extract md link
-			console.log("cur track md link: ", curTrackMdLink);
+			const curTrackMdLink = parseTrackAsWikilink(this.track);
 
-			if (!this.track?.progress) {
-				console.log("onChooseSuggestion: no progress timestamp"); //TODO: better handling
-				return;
-			}
-
-			//append input to new file songFile
 			appendInput(
 				app,
 				songFile.path,
 				curBlockMdLink,
-				this.track?.progress,
+				this.track.progress,
 				"",
 				curTrackMdLink,
 			);
