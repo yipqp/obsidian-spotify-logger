@@ -12,17 +12,17 @@ import SpotifyLogger from "./main";
 import { AlbumFormatted, TrackFormatted } from "types";
 
 export function registerCommands(plugin: SpotifyLogger) {
-	const searchTrackCb = async (track: TrackFormatted) => {
+	const searchItemCb = async (item: TrackFormatted | AlbumFormatted) => {
 		new SpotifyLogModal(
 			plugin.app,
-			track,
+			item,
 			plugin.settings.spotifyLoggerFolderPath,
 			async (input: string, blockId: string) => {
 				await logPlaying(
 					plugin.app,
 					plugin.settings.spotifyLoggerFolderPath,
 					input,
-					track,
+					item,
 					blockId,
 				);
 			},
@@ -113,9 +113,22 @@ export function registerCommands(plugin: SpotifyLogger) {
 				new Notice("Please connect your Spotify account", 3000);
 				return;
 			}
-			new SpotifySearchModal(plugin.app, searchTrackCb).open();
+			new SpotifySearchModal(plugin.app, "Track", searchItemCb).open();
 		},
 	});
+
+	plugin.addCommand({
+		id: "search-album",
+		name: "Search album",
+		callback: async () => {
+			if (!isAuthenticated()) {
+				new Notice("Please connect your Spotify account", 3000);
+				return;
+			}
+			new SpotifySearchModal(plugin.app, "Album", searchItemCb).open();
+		},
+	});
+
 	plugin.addCommand({
 		id: "temp",
 		name: "test",

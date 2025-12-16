@@ -18,11 +18,11 @@ export class SpotifyLogModal extends Modal {
 		this.close();
 	};
 	private handleChooseSuggestion = async (
-		track: TrackFormatted, // TODO: edit to handle albums
+		item: TrackFormatted | AlbumFormatted,
 		textComponent: TextComponent,
 	) => {
 		if (!this.playing) return;
-		if (this.playing.id === track.id) {
+		if (this.playing.id === item.id) {
 			new Notice("Error: cannot reference self");
 			return;
 		}
@@ -31,10 +31,10 @@ export class SpotifyLogModal extends Modal {
 		const songFile = await createPlayingFile(
 			this.app,
 			this.folderPath,
-			track,
+			item,
 		);
 
-		const refTrackMdLink = parsePlayingAsWikilink(track);
+		const refTrackMdLink = parsePlayingAsWikilink(item);
 
 		textComponent.setValue(textComponent.getValue() + refTrackMdLink);
 		this.input = textComponent.getValue();
@@ -107,8 +107,10 @@ export class SpotifyLogModal extends Modal {
 			"spotify-log-modal-button-container",
 		);
 
-		const onChooseSuggestionCb = async (track: TrackFormatted) => {
-			await this.handleChooseSuggestion(track, textComponent);
+		const onChooseSuggestionCb = async (
+			item: TrackFormatted | AlbumFormatted,
+		) => {
+			await this.handleChooseSuggestion(item, textComponent);
 		};
 
 		const openSearchModal = () => {
@@ -116,7 +118,11 @@ export class SpotifyLogModal extends Modal {
 				new Notice("Please connect your Spotify account", 3000);
 				return;
 			}
-			new SpotifySearchModal(this.app, onChooseSuggestionCb).open();
+			new SpotifySearchModal(
+				this.app,
+				this.playing!.type,
+				onChooseSuggestionCb,
+			).open();
 		};
 
 		this.modalEl.addEventListener("keydown", (e) => {
@@ -127,7 +133,9 @@ export class SpotifyLogModal extends Modal {
 		});
 
 		const searchButton = new ButtonComponent(buttonContainer)
-			.setButtonText("Search song")
+			.setButtonText(
+				`Seach ${this.playing.type === "Track" ? "track" : "album"}`,
+			)
 			.onClick(openSearchModal);
 
 		const saveButton = new ButtonComponent(buttonContainer)

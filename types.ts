@@ -1,6 +1,15 @@
 export type PlayingType = "Track" | "Album";
 
-export interface TrackFormatted {
+export interface MinimalItem {
+	href?: string;
+	id: string;
+	type: PlayingType;
+	image: Image;
+	name: string;
+	artists: string;
+}
+
+export interface TrackFormatted extends MinimalItem {
 	type: "Track";
 	album: string;
 	albumid: string;
@@ -12,7 +21,7 @@ export interface TrackFormatted {
 	progress?: string;
 }
 
-export interface AlbumFormatted {
+export interface AlbumFormatted extends MinimalItem {
 	type: "Album";
 	image: Image;
 	artists: string;

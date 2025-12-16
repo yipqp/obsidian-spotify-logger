@@ -1,23 +1,40 @@
 import { App, debounce, Debouncer, Notice, SuggestModal } from "obsidian";
-import { processTrack, searchTrack } from "src/api";
-import { Track, TrackFormatted } from "types";
+import {
+	processAlbum,
+	processTrack,
+	searchItem,
+	callEndpoint,
+	processSimplifiedAlbum,
+} from "src/api";
+import {
+	PlayingType,
+	Track,
+	TrackFormatted,
+	AlbumFormatted,
+	SimplifiedAlbum,
+	MinimalItem,
+} from "types";
 
-export class SpotifySearchModal extends SuggestModal<TrackFormatted> {
+export class SpotifySearchModal extends SuggestModal<MinimalItem> {
 	isLoading: boolean;
 	lastQuery: string;
 	searchDebouncer: Debouncer<
-		[query: string, cb: (tracks: TrackFormatted[]) => void],
+		[query: string, cb: (items: MinimalItem[]) => void],
 		void
 	>;
-	cb: (track: TrackFormatted) => Promise<void>;
+	cb: (item: TrackFormatted | AlbumFormatted) => Promise<void>;
 
-	constructor(app: App, cb: (track: TrackFormatted) => Promise<void>) {
+	constructor(
+		app: App,
+		type: PlayingType,
+		cb: (item: MinimalItem) => Promise<void>,
+	) {
 		super(app);
 		this.isLoading = false;
 		this.lastQuery = "";
 		this.cb = cb;
 		this.searchDebouncer = debounce(
-			async (query: string, cb: (tracks: TrackFormatted[]) => void) => {
+			async (query: string, cb: (items: MinimalItem[]) => void) => {
 				if (query === "" || query === this.lastQuery) {
 					return Promise.resolve([]);
 				}
@@ -26,29 +43,38 @@ export class SpotifySearchModal extends SuggestModal<TrackFormatted> {
 
 				console.log("calling search api");
 
-				const data = await searchTrack(query);
+				const data = await searchItem(query, type);
 
 				if (!data) {
 					console.log("no data");
 					return Promise.resolve([]);
 				}
 
-				const tracks: TrackFormatted[] = data.tracks.items.map(
-					(track: Track) => processTrack(track)
-				);
+				let itemsFormatted;
 
-				// console.log(JSON.stringify(tracks, null, 2));
+				if (type === "Track") {
+					itemsFormatted = data.tracks.items.map((track: Track) =>
+						processTrack(track),
+					);
+				} else if (type === "Album") {
+					itemsFormatted = data.albums.items.map(
+						(album: SimplifiedAlbum) =>
+							processSimplifiedAlbum(album),
+					);
+				}
+
+				// console.log(JSON.stringify(itemsFormatted, null, 2));
 				this.isLoading = false;
-				cb(tracks);
+				cb(itemsFormatted);
 			},
 			300,
-			true
+			true,
 		);
 	}
 
 	// called when input is changed
 	// reference: https://github.com/bbawj/obsidian-semantic-search/blob/45e2cc2e10b78bcc357287a4abc22a81df7ce36d/src/ui/linkSuggest.ts#L45
-	async getSuggestions(query: string): Promise<TrackFormatted[]> {
+	async getSuggestions(query: string): Promise<MinimalItem[]> {
 		this.isLoading = true;
 		return new Promise((resolve) => {
 			this.searchDebouncer(query, (query) => {
@@ -57,29 +83,42 @@ export class SpotifySearchModal extends SuggestModal<TrackFormatted> {
 		});
 	}
 
-	renderSuggestion(track: TrackFormatted, el: HTMLElement) {
+	renderSuggestion(item: MinimalItem, el: HTMLElement) {
 		el.addClass("track-container");
 		const imageEl = el.createEl("img", { cls: "track-img" });
 
-		imageEl.src = track.image.url;
-		imageEl.width = 50 || track.image.width; // TODO: figure out best way to handle img sizing
-		imageEl.height = 50 || track.image.height;
+		imageEl.src = item.image.url;
+		imageEl.width = 50 || item.image.width; // TODO: figure out best way to handle img sizing
+		imageEl.height = 50 || item.image.height;
 
 		const trackTextContainer = el.createDiv("track-text-container");
 		trackTextContainer.createEl("div", {
-			text: track.name,
-			cls: "track-title",
+			text: item.name,
+			cls: "item-title",
 		});
 		trackTextContainer.createEl("small", {
-			text: track.artists.toString(),
+			text: item.artists.toString(),
 		});
 	}
 
 	async onChooseSuggestion(
-		track: TrackFormatted,
-		evt: MouseEvent | KeyboardEvent
+		item: MinimalItem,
+		evt: MouseEvent | KeyboardEvent,
 	) {
-		new Notice(`Selected ${track.name}`);
-		await this.cb(track);
+		new Notice(`Selected ${item.name}`);
+		let resolved: TrackFormatted | AlbumFormatted;
+
+		if (item.type === "Album") {
+			if (!item.href) {
+				new Notice("Album item missing href"); // shouldn't reach here.
+				//TODO: refactor types to explicitly state that an album under MinimalItem will have an href?
+				return;
+			}
+			const fetchedAlbum = await callEndpoint(item.href);
+			resolved = processAlbum(fetchedAlbum) as AlbumFormatted;
+		} else {
+			resolved = item as TrackFormatted;
+		}
+		await this.cb(resolved);
 	}
 }

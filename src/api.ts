@@ -5,8 +5,10 @@ import {
 	Album,
 	AlbumFormatted,
 	Artists,
+	MinimalItem,
 	PlaybackState,
 	PlayingType,
+	SimplifiedAlbum,
 	SimplifiedArtist,
 	SimplifiedTrack,
 	Track,
@@ -206,7 +208,7 @@ export const getCurrentlyPlayingTrack = async () => {
 	return data;
 };
 
-export const searchTrack = async (query: string) => {
+export const searchItem = async (query: string, type: PlayingType) => {
 	if (!isAuthenticated()) {
 		throw new Error("Please connect your spotify account");
 	}
@@ -220,8 +222,7 @@ export const searchTrack = async (query: string) => {
 
 	const params = {
 		q: query,
-		type: "track",
-		limit: "10",
+		type: type.toLowerCase(),
 	};
 
 	searchURL.search = new URLSearchParams(params).toString();
@@ -244,7 +245,7 @@ export const searchTrack = async (query: string) => {
 	return data;
 };
 
-const callEndpoint = async (url: string) => {
+export const callEndpoint = async (url: string) => {
 	//TODO: use in each api call
 	if (!isAuthenticated()) {
 		throw new Error("Please connect your spotify account");
@@ -277,7 +278,6 @@ export const tracksAsWikilinks = (
 };
 
 export const processCurrentlyPlayingResponse = async (
-	//TODO: await this
 	playbackState: PlaybackState,
 	type: PlayingType,
 ) => {
@@ -320,6 +320,17 @@ export const processTrack = (track: TrackLike): TrackFormatted => {
 		name: track.name,
 		image: track.album.images[track.album.images.length - 1],
 		duration: formatMs(track.duration_ms.toString()),
+	};
+};
+
+export const processSimplifiedAlbum = (album: SimplifiedAlbum): MinimalItem => {
+	return {
+		href: album.href,
+		id: album.id,
+		type: "Album",
+		image: album.images[album.images.length - 1],
+		name: album.name,
+		artists: formatArtists(album.artists),
 	};
 };
 
