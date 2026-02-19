@@ -80,13 +80,26 @@ export const createPlayingFile = async (
 	/* edit frontmatter for https://github.com/snezhig/obsidian-front-matter-title
 	 * this is to change the file display title, since the title is a unique spotify id
 	 */
+
+	// check: if album exists, then frontmatter[album] should link back to that album
+	let albumWikilink: string = "";
+	if (playing.type === "Track") {
+		const albumPath = normalizePath(
+			folderPath + "/" + playing.albumid + ".md",
+		);
+		const albumFile = app.vault.getFileByPath(albumPath);
+		if (albumFile) {
+			albumWikilink = `[[${playing.albumid}|${playing.name}]]`;
+		}
+	}
+
 	try {
 		if (playing.type === "Track") {
 			app.fileManager.processFrontMatter(file, (frontmatter) => {
 				frontmatter["title"] = playing.name; // TODO: let user change which frontmatter should reflect display title?
 				frontmatter["artists"] = playing.artists;
 				frontmatter["type"] = playing.type;
-				frontmatter["album"] = playing.album;
+				frontmatter["album"] = albumWikilink || playing.album;
 				frontmatter["duration"] = playing.duration;
 				frontmatter["tags"] = ""; //TODO: allow user to enable / disable which frontmatter shows up
 				frontmatter["aliases"] = playing.name;
