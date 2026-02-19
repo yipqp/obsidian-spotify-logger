@@ -13,20 +13,25 @@ import { AlbumFormatted, TrackFormatted } from "types";
 
 export function registerCommands(plugin: SpotifyLogger) {
 	const searchItemCb = async (item: TrackFormatted | AlbumFormatted) => {
-		new SpotifyLogModal(
-			plugin.app,
-			item,
-			plugin.settings.spotifyLoggerFolderPath,
-			async (input: string, blockId: string) => {
-				await logPlaying(
-					plugin.app,
-					plugin.settings.spotifyLoggerFolderPath,
-					input,
-					item,
-					blockId,
-				);
-			},
-		).open();
+		try {
+			new SpotifyLogModal(
+				plugin.app,
+				item,
+				plugin.settings.spotifyLoggerFolderPath,
+				async (input: string, blockId: string) => {
+					await logPlaying(
+						plugin.app,
+						plugin.settings.spotifyLoggerFolderPath,
+						input,
+						item,
+						blockId,
+					);
+				},
+			).open();
+		} catch (err) {
+			const message = `[Spotify Logger] Error: ${err.message}`;
+			new Notice(`${message}`, 3000);
+		}
 	};
 
 	plugin.addCommand({

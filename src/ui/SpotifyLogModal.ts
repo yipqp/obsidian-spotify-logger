@@ -1,5 +1,12 @@
 import { isAuthenticated } from "src/api";
-import { App, ButtonComponent, Modal, TextComponent, Notice } from "obsidian";
+import {
+	App,
+	ButtonComponent,
+	Modal,
+	TextComponent,
+	Notice,
+	normalizePath,
+} from "obsidian";
 import { appendInput, createPlayingFile } from "src/SpotifyLogger";
 import { AlbumFormatted, TrackFormatted } from "types";
 import { generateBlockID, parsePlayingAsWikilink } from "src/utils";
@@ -26,6 +33,7 @@ export class SpotifyLogModal extends Modal {
 			new Notice("Error: cannot reference self");
 			return;
 		}
+
 		console.log("searching from log modal");
 
 		const songFile = await createPlayingFile(
@@ -78,6 +86,16 @@ export class SpotifyLogModal extends Modal {
 		if (!this.playing) {
 			console.log("is episode"); //TODO: Handle episode
 			return;
+		}
+
+		const folder = this.app.vault.getFolderByPath(
+			normalizePath(this.folderPath),
+		);
+
+		if (folder == null) {
+			throw new Error(
+				"invalid folder path, please check the defined folder path in settings.",
+			);
 		}
 
 		const title = `${this.playing.artists} - ${this.playing.name}`;

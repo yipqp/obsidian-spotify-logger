@@ -1,4 +1,4 @@
-import { App, normalizePath, moment } from "obsidian";
+import { App, normalizePath, moment, Notice } from "obsidian";
 import { AlbumFormatted, TrackFormatted, PlayingType } from "types";
 import { tracksAsWikilinks } from "./api";
 
@@ -122,6 +122,7 @@ export const logPlaying = async (
 	}
 
 	const file = await createPlayingFile(app, folderPath, playing);
+
 	if (playing.type === "Album") {
 		for (const track of playing.tracks) {
 			createPlayingFile(app, folderPath, track);
