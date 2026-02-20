@@ -376,3 +376,9 @@ export const processAlbum = (album: Album): AlbumFormatted => {
 		duration: getAlbumLength(album),
 	};
 };
+
+export const nowPlayingAsString = (
+	playing: AlbumFormatted | TrackFormatted,
+) => {
+	return `${playing.artists} - ${playing.name}`;
+};

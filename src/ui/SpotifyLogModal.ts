@@ -1,4 +1,4 @@
-import { isAuthenticated } from "src/api";
+import { isAuthenticated, nowPlayingAsString } from "src/api";
 import {
 	App,
 	ButtonComponent,
@@ -116,7 +116,7 @@ export class SpotifyLogModal extends Modal {
 			);
 		}
 
-		const title = `${this.playing.artists} - ${this.playing.name}`;
+		const title = nowPlayingAsString(this.playing);
 		this.setTitle(title);
 
 		this.contentEl.addClass("spotify-log-modal-content-container");
