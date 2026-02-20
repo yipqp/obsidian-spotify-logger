@@ -62,6 +62,46 @@ export const appendInput = async (
 	await app.vault.append(file, formattedinput);
 };
 
+export const updateTrackFrontmatter = (
+	app: App,
+	trackFile: TFile,
+	album: AlbumFormatted,
+) => {
+	try {
+		app.fileManager.processFrontMatter(trackFile, (frontmatter) => {
+			const albumWikilink = `[[${album.id}|${album.name}]]`;
+			frontmatter["album"] = albumWikilink;
+		});
+	} catch (e) {
+		console.error("error occurred", e);
+	}
+};
+
+export const updateAlbumFrontmatter = (
+	app: App,
+	albumFile: TFile,
+	track: TrackFormatted,
+) => {
+	try {
+		app.fileManager.processFrontMatter(albumFile, (frontmatter) => {
+			const tracks = frontmatter["tracks"];
+			const trackName = track.name;
+			const trackWikilink = `[[${track.id}|${trackName}]]`;
+			const index = tracks.indexOf(trackName);
+
+			if (index === -1) {
+				throw new Error(`err: could not find ${trackName}`);
+			}
+
+			console.log(trackWikilink);
+
+			tracks[index] = trackWikilink;
+		});
+	} catch (e) {
+		console.error("error occurred", e);
+	}
+};
+
 // create new album file in folder path if not exist, and return it
 export const createAlbumFile = async (
 	app: App,
@@ -93,6 +133,7 @@ export const createAlbumFile = async (
 				app,
 				folderPath,
 				playing.tracks,
+				playing,
 				logAlbumAlwaysCreateNewTrackFiles,
 			);
 			frontmatter["tags"] = "";
@@ -126,6 +167,7 @@ export const createTrackFile = async (
 	const albumFile = getFile(app, folderPath, playing.albumid);
 	if (albumFile) {
 		albumWikilink = `[[${playing.albumid}|${playing.album}]]`;
+		updateAlbumFrontmatter(app, albumFile, playing);
 	}
 
 	try {

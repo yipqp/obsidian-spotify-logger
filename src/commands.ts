@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import { SpotifyLogModal } from "./ui/SpotifyLogModal";
-import { logPlaying } from "src/SpotifyLogger";
+import { logPlaying, updateAlbumFrontmatter } from "src/SpotifyLogger";
 import { SpotifySearchModal } from "./ui/SpotifySearchModal";
 import {
 	getAuthUrl,
@@ -144,9 +144,9 @@ export function registerCommands(plugin: SpotifyLogger) {
 		id: "temp",
 		name: "test",
 		callback: () => {
-			const curFile = plugin.app.workspace.getActiveFile();
-			if (!curFile) return;
-			console.log(plugin.app.metadataCache.getFileCache(curFile));
+			// const curFile = plugin.app.workspace.getActiveFile();
+			// if (!curFile) return;
+			// updateAlbumFrontmatter(plugin.app, curFile, "replaceMe");
 		},
 	});
 }

@@ -25,6 +25,7 @@ import {
 	getFile,
 } from "src/utils";
 import { error } from "console";
+import { updateTrackFrontmatter } from "./SpotifyLogger";
 
 const clientId = "44e32ffa3b9c46398637431d6808481d";
 const redirectUri = "obsidian://spotify-auth";
@@ -277,14 +278,15 @@ export const tracksAsWikilinks = (
 	app: App,
 	folderPath: string,
 	tracks: SimplifiedTrack[] | TrackFormatted[],
+	album: AlbumFormatted,
 	logAlbumAlwaysCreateNewTrackFiles: boolean,
 ) => {
 	return tracks.map((track) => {
-		if (!logAlbumAlwaysCreateNewTrackFiles) {
-			const file = getFile(app, folderPath, track.id);
-			if (!file) {
-				return track.name;
-			}
+		const trackFile = getFile(app, folderPath, track.id);
+		if (trackFile) {
+			updateTrackFrontmatter(app, trackFile, album); //maybe doing too much
+		} else if (!logAlbumAlwaysCreateNewTrackFiles) {
+			return track.name;
 		}
 
 		return parsePlayingAsWikilink(track);
