@@ -1,7 +1,7 @@
 import { App, normalizePath, moment, Notice, TFile } from "obsidian";
 import { AlbumFormatted, TrackFormatted, PlayingType } from "types";
 import { tracksAsWikilinks } from "./api";
-import { getFile, getFilePath } from "./utils";
+import { getFile, getFilePath, parsePlayingAsWikilink } from "./utils";
 
 const formatInput = (
 	input: String,
@@ -69,7 +69,7 @@ export const updateTrackFrontmatter = (
 ) => {
 	try {
 		app.fileManager.processFrontMatter(trackFile, (frontmatter) => {
-			const albumWikilink = `[[${album.id}|${album.name}]]`;
+			const albumWikilink = parsePlayingAsWikilink(album);
 			frontmatter["album"] = albumWikilink;
 		});
 	} catch (e) {
@@ -86,16 +86,12 @@ export const updateAlbumFrontmatter = (
 		app.fileManager.processFrontMatter(albumFile, (frontmatter) => {
 			const tracks = frontmatter["tracks"];
 			const trackName = track.name;
-			const trackWikilink = `[[${track.id}|${trackName}]]`;
+			const trackWikilink = parsePlayingAsWikilink(track);
 			const index = tracks.indexOf(trackName);
 
-			if (index === -1) {
-				throw new Error(`err: could not find ${trackName}`);
+			if (index !== -1) {
+				tracks[index] = trackWikilink;
 			}
-
-			console.log(trackWikilink);
-
-			tracks[index] = trackWikilink;
 		});
 	} catch (e) {
 		console.error("error occurred", e);
