@@ -43,7 +43,7 @@ export function registerCommands(plugin: ObsidianFM) {
 				},
 			).open();
 		} catch (err) {
-			showError(err);
+			showError(err.message);
 		}
 	};
 
@@ -69,7 +69,7 @@ export function registerCommands(plugin: ObsidianFM) {
 				},
 			).open();
 		} catch (err) {
-			showError(err);
+			showError(err.message);
 		}
 	};
 

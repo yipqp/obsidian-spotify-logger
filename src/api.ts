@@ -165,7 +165,7 @@ export const isAuthenticated = () => {
 
 export const callEndpoint = async (url: string) => {
 	if (!isAuthenticated()) {
-		throw new Error("Please connect your spotify account");
+		throw new Error("please connect your spotify account");
 	}
 
 	const accessToken = (await getAccessToken()) ?? "";
@@ -176,10 +176,15 @@ export const callEndpoint = async (url: string) => {
 		},
 	});
 
+	if (response.status === 204) {
+		throw new Error("no currently playing track");
+	}
+
 	const data = await response.json();
+
 	if (data.error) {
 		if (data.error.status === 401) {
-			throw new Error("Please connect your spotify account");
+			throw new Error("please connect your spotify account");
 		}
 		throw new Error(data.error.message);
 	}
