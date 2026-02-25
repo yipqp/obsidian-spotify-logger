@@ -5,9 +5,9 @@ import {
 	Notice,
 	renderResults,
 } from "obsidian";
-import { MinimalItem, TrackFormatted } from "types";
+import { TrackFormatted } from "types";
 
-export class RecentSongsModal extends FuzzySuggestModal<MinimalItem> {
+export class RecentSongsModal extends FuzzySuggestModal<TrackFormatted> {
 	cb: (item: TrackFormatted) => Promise<void>;
 	recentSongs: TrackFormatted[];
 
@@ -21,20 +21,20 @@ export class RecentSongsModal extends FuzzySuggestModal<MinimalItem> {
 		this.cb = cb;
 	}
 
-	getItems(): MinimalItem[] {
+	getItems(): TrackFormatted[] {
 		return this.recentSongs;
 	}
 
-	getItemText(item: MinimalItem): string {
+	getItemText(item: TrackFormatted): string {
 		return item.name + " " + item.artists;
 	}
 
-	async onChooseItem(item: TrackFormatted, evt: MouseEvent | KeyboardEvent) {
+	async onChooseItem(item: TrackFormatted, _evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${item.name}`);
 		await this.cb(item);
 	}
 
-	renderSuggestion(match: FuzzyMatch<MinimalItem>, el: HTMLElement): void {
+	renderSuggestion(match: FuzzyMatch<TrackFormatted>, el: HTMLElement): void {
 		el.addClass("track-container");
 
 		const imageEl = el.createEl("img", { cls: "track-img" });
