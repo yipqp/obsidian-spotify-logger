@@ -56,6 +56,20 @@ export const generateBlockID = (idLen: number): string => {
 	return id;
 };
 
+// generate id from track to use as filename
+// for local files without Spotify ids
+export const generateIDFromTrack = async (
+	track: TrackFormatted,
+): Promise<string> => {
+	const plain = `${track.artists} - ${track.name}`;
+	const hashBuffer = await sha256(plain);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("")
+		.slice(0, 22); // arbitrarily chose 22, it's the length of Spotify ID
+};
+
 export const parsePlayingAsWikilink = (
 	playing: MinimalItem | SimplifiedTrack,
 	embedLinkedContent?: boolean,

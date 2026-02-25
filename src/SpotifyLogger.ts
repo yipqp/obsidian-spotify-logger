@@ -3,6 +3,7 @@ import { AlbumFormatted, TrackFormatted } from "types";
 import { tracksAsWikilinks } from "./api";
 import { obsidianfmDefaultSettings } from "./settings";
 import {
+	generateIDFromTrack,
 	getFile,
 	getFilePath,
 	parsePlayingAsWikilink,
@@ -161,6 +162,12 @@ export const createTrackFile = async (
 	playing: TrackFormatted,
 ) => {
 	const { folderPath, showTags, showType, showDuration } = settings;
+
+	if (!playing.id) {
+		// playing from local file
+		playing.id = await generateIDFromTrack(playing);
+	}
+
 	let file = getFile(app, folderPath, playing.id);
 
 	if (file) {
