@@ -38,10 +38,10 @@ export function registerCommands(plugin: ObsidianFM) {
 	const logCurrentlyPlayingCb = async (playingType: PlayingType) => {
 		try {
 			const currentlyPlayingJson = await getCurrentlyPlayingTrack();
-			const currentlyPlaying = (await processCurrentlyPlayingResponse(
+			const currentlyPlaying = await processCurrentlyPlayingResponse(
 				currentlyPlayingJson,
 				playingType,
-			)) as PlayingTypeFormatted;
+			);
 			new LogModal(
 				plugin.app,
 				plugin.settings,

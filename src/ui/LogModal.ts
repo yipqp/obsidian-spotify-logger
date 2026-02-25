@@ -28,7 +28,7 @@ export class LogModal extends Modal {
 	private folderPath: string;
 	private onSubmit: (input: string, blockId?: string) => void;
 	private blockId: string | null;
-	private playing: PlayingTypeFormatted | null;
+	private playing: PlayingTypeFormatted;
 	private input = "";
 	private handleSubmit = async () => {
 		await this.updateFiles();
@@ -38,7 +38,6 @@ export class LogModal extends Modal {
 	};
 	private pendingPlayings: PlayingTypeFormatted[];
 	private updateFiles = async () => {
-		if (!this.playing) return;
 		while (this.pendingPlayings.length > 0) {
 			const playing = this.pendingPlayings.pop()!;
 			let file: TFile;
@@ -81,7 +80,6 @@ export class LogModal extends Modal {
 		item: TrackFormatted | AlbumFormatted,
 		textComponent: TextComponent,
 	) => {
-		if (!this.playing) return;
 		if (this.playing.id === item.id) {
 			showError("Error: cannot reference self");
 			return;
@@ -106,10 +104,6 @@ export class LogModal extends Modal {
 		this.playing = currentlyPlaying;
 		this.onSubmit = onSubmit;
 		this.pendingPlayings = [];
-
-		if (!this.playing) {
-			throw new Error("current track not supported");
-		}
 
 		const folder = this.app.vault.getFolderByPath(
 			normalizePath(this.folderPath),
@@ -155,7 +149,7 @@ export class LogModal extends Modal {
 		const openSearchModal = requireAuth(async () => {
 			new SearchModal(
 				this.app,
-				this.playing!.type,
+				this.playing.type,
 				onChooseSuggestionCb,
 			).open();
 		});

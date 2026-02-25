@@ -248,7 +248,7 @@ export const processCurrentlyPlayingResponse = async (
 	type: PlayingType,
 ) => {
 	if (playbackState.item.kind === "episode") {
-		return null;
+		throw new Error("episodes not supported");
 	}
 	if (type === "Track") {
 		const trackInfo = processTrack(playbackState.item);
@@ -264,7 +264,7 @@ export const processCurrentlyPlayingResponse = async (
 		const albumInfo = processAlbum(album);
 		return albumInfo;
 	}
-	return null;
+	throw new Error("current playback state not supported");
 };
 
 export const processRecentlyPlayed = (
