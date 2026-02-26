@@ -12,9 +12,12 @@ export default class ObsidianFM extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.registerObsidianProtocolHandler("spotify-auth", async (e) => {
-			handleAuth(e);
-		});
+		this.registerObsidianProtocolHandler(
+			"obsidian-fm-spotify-auth",
+			async (e) => {
+				handleAuth(e);
+			},
+		);
 		registerCommands(this);
 		this.addSettingTab(new SettingTab(this.app, this));
 	}

@@ -28,7 +28,7 @@ import {
 import { updateTrackFrontmatter } from "./SpotifyLogger";
 
 const clientId = "44e32ffa3b9c46398637431d6808481d";
-const redirectUri = "obsidian://spotify-auth";
+const redirectUri = "obsidian://obsidian-fm-spotify-auth";
 const scope = "user-read-currently-playing user-read-recently-played";
 const codeVerifier = generateRandomString(64);
 
