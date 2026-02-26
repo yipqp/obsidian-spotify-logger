@@ -146,7 +146,7 @@ export const createAlbumFile = async (
 				logAlbumAlwaysCreateNewTrackFiles,
 			);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = playing.name;
+			frontmatter["aliases"] = `${playing.artists} - ${playing.name}`;
 		});
 	} catch (e) {
 		showNotice(e.message, true);
@@ -194,7 +194,7 @@ export const createTrackFile = async (
 			frontmatter["album"] = albumWikilink || playing.album;
 			showDuration && (frontmatter["duration"] = playing.duration);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = playing.name;
+			frontmatter["aliases"] = `${playing.artists} - ${playing.name}`;
 		});
 	} catch (e) {
 		showNotice(e.message, true);
