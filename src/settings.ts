@@ -1,15 +1,15 @@
-export interface obsidianfmDefaultSettings {
+export interface scrobbleDefaultSettings {
 	folderPath: string;
-	logAlbumAlwaysCreateNewTrackFiles: boolean;
+	scrobbleAlbumAlwaysCreatesNewTrackFiles: boolean;
 	showType: boolean;
 	showDuration: boolean;
 	showTags: boolean;
 	showAlbumReleaseDate: boolean;
 }
 
-export const OBSIDIANFM_DEFAULT_SETTINGS: obsidianfmDefaultSettings = {
+export const SCROBBLE_DEFAULT_SETTINGS: scrobbleDefaultSettings = {
 	folderPath: "",
-	logAlbumAlwaysCreateNewTrackFiles: false,
+	scrobbleAlbumAlwaysCreatesNewTrackFiles: false,
 	showType: true,
 	showDuration: true,
 	showAlbumReleaseDate: true,

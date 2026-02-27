@@ -1,6 +1,6 @@
 {
-	"id": "spotify-notes",
-	"name": "obsidian.fm",
+	"id": "scrobble",
+	"name": "Scrobble",
 	"version": "1.0.0",
 	"minAppVersion": "1.11.7",
 	"description": "Log and connect thoughts on Spotify songs and albums.",

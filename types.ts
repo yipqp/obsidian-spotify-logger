@@ -1,13 +1,13 @@
 // https://github.com/spotify/spotify-web-api-ts-sdk/blob/main/src/types.ts
 
 // start of types by me
-export type PlayingType = "Track" | "Album";
-export type PlayingTypeFormatted = TrackFormatted | AlbumFormatted;
+export type ItemType = "Track" | "Album";
+export type ItemFormatted = TrackFormatted | AlbumFormatted;
 
 export interface MinimalItem {
 	href?: string;
 	id: string;
-	type: PlayingType;
+	type: ItemType;
 	image: Image;
 	name: string;
 	artists: string;
@@ -45,8 +45,8 @@ export type TrackLike = Pick<
 };
 
 // end of types by me
-// everything below provided by https://github.com/spotify/spotify-web-api-ts-sdk/blob/main/src/types.ts
 
+// https://github.com/spotify/spotify-web-api-ts-sdk/blob/main/src/types.ts
 // Configuration types
 
 export type RequestImplementation = (

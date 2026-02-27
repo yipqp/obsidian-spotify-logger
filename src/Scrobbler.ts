@@ -1,17 +1,17 @@
 import { App, moment, TFile } from "obsidian";
-import { AlbumFormatted, TrackFormatted } from "types";
+import { AlbumFormatted, ItemFormatted, TrackFormatted } from "types";
 import { tracksAsWikilinks } from "./api";
-import { obsidianfmDefaultSettings } from "./settings";
 import {
 	generateIDFromTrack,
 	getFile,
 	getFilePath,
-	parsePlayingAsWikilink,
+	parseItemAsWikilink,
 	showNotice,
 } from "./utils";
+import { scrobbleDefaultSettings } from "./settings";
 
 const formatInput = (
-	input: String,
+	input: string,
 	progress: string,
 	blockId?: string,
 	referenceLink?: string,
@@ -31,7 +31,7 @@ ${input} ${blockId ? `^${blockId}` : ""}
 };
 
 const formatInputNoTimestamp = (
-	input: String,
+	input: string,
 	blockId?: string,
 	referenceLink?: string,
 ) => {
@@ -75,7 +75,7 @@ export const updateTrackFrontmatter = (
 ) => {
 	try {
 		app.fileManager.processFrontMatter(trackFile, (frontmatter) => {
-			const albumWikilink = parsePlayingAsWikilink(album);
+			const albumWikilink = parseItemAsWikilink(album);
 			frontmatter["album"] = albumWikilink;
 		});
 	} catch (e) {
@@ -92,7 +92,7 @@ export const updateAlbumFrontmatter = (
 		app.fileManager.processFrontMatter(albumFile, (frontmatter) => {
 			const tracks = frontmatter["tracks"];
 			const trackName = track.name;
-			const trackWikilink = parsePlayingAsWikilink(track);
+			const trackWikilink = parseItemAsWikilink(track);
 			const index = tracks.indexOf(trackName);
 
 			if (index !== -1) {
@@ -107,24 +107,24 @@ export const updateAlbumFrontmatter = (
 // create new album file in folder path if not exist, and return it
 export const createAlbumFile = async (
 	app: App,
-	settings: obsidianfmDefaultSettings,
-	playing: AlbumFormatted,
+	settings: scrobbleDefaultSettings,
+	album: AlbumFormatted,
 ) => {
 	const {
 		folderPath,
-		logAlbumAlwaysCreateNewTrackFiles,
+		scrobbleAlbumAlwaysCreatesNewTrackFiles,
 		showTags,
 		showType,
 		showDuration,
 		showAlbumReleaseDate,
 	} = settings;
-	let file = getFile(app, folderPath, playing.id);
+	let file = getFile(app, folderPath, album.id);
 
 	if (file) {
 		return file;
 	}
 
-	const filePath = getFilePath(folderPath, playing.id);
+	const filePath = getFilePath(folderPath, album.id);
 
 	file = await app.vault.create(filePath, "");
 
@@ -132,21 +132,21 @@ export const createAlbumFile = async (
 		app.fileManager.processFrontMatter(file, (frontmatter) => {
 			// use https://github.com/snezhig/obsidian-front-matter-title to display
 			// frontmatter["name"] as the filename
-			frontmatter["name"] = playing.name;
-			frontmatter["artists"] = playing.artists;
-			showType && (frontmatter["type"] = playing.type);
+			frontmatter["name"] = album.name;
+			frontmatter["artists"] = album.artists;
+			showType && (frontmatter["type"] = album.type);
 			showAlbumReleaseDate &&
-				(frontmatter["release date"] = playing.releaseDate);
-			showDuration && (frontmatter["duration"] = playing.duration);
+				(frontmatter["release date"] = album.releaseDate);
+			showDuration && (frontmatter["duration"] = album.duration);
 			frontmatter["tracks"] = tracksAsWikilinks(
 				app,
 				folderPath,
-				playing.tracks,
-				playing,
-				logAlbumAlwaysCreateNewTrackFiles,
+				album.tracks,
+				album,
+				scrobbleAlbumAlwaysCreatesNewTrackFiles,
 			);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = `${playing.artists} - ${playing.name}`;
+			frontmatter["aliases"] = `${album.artists} - ${album.name}`;
 		});
 	} catch (e) {
 		showNotice(e.message, true);
@@ -158,43 +158,43 @@ export const createAlbumFile = async (
 // create new track file in folder path if not exist, and return it
 export const createTrackFile = async (
 	app: App,
-	settings: obsidianfmDefaultSettings,
-	playing: TrackFormatted,
+	settings: scrobbleDefaultSettings,
+	track: TrackFormatted,
 ) => {
 	const { folderPath, showTags, showType, showDuration } = settings;
 
-	if (!playing.id) {
+	if (!track.id) {
 		// playing from local file
-		playing.id = await generateIDFromTrack(playing);
+		track.id = await generateIDFromTrack(track);
 	}
 
-	let file = getFile(app, folderPath, playing.id);
+	let file = getFile(app, folderPath, track.id);
 
 	if (file) {
 		return file;
 	}
 
-	const filePath = getFilePath(folderPath, playing.id);
+	const filePath = getFilePath(folderPath, track.id);
 
 	file = await app.vault.create(filePath, "");
 
 	// check: if album exists, then frontmatter[album] should link back to that album
-	let albumWikilink: string = "";
-	const albumFile = getFile(app, folderPath, playing.albumid);
+	let albumWikilink = "";
+	const albumFile = getFile(app, folderPath, track.albumid);
 	if (albumFile) {
-		albumWikilink = `[[${playing.albumid}|${playing.album}]]`;
-		updateAlbumFrontmatter(app, albumFile, playing);
+		albumWikilink = `[[${track.albumid}|${track.album}]]`;
+		updateAlbumFrontmatter(app, albumFile, track);
 	}
 
 	try {
 		app.fileManager.processFrontMatter(file, (frontmatter) => {
-			frontmatter["name"] = playing.name;
-			frontmatter["artists"] = playing.artists;
-			showType && (frontmatter["type"] = playing.type);
-			frontmatter["album"] = albumWikilink || playing.album;
-			showDuration && (frontmatter["duration"] = playing.duration);
+			frontmatter["name"] = track.name;
+			frontmatter["artists"] = track.artists;
+			showType && (frontmatter["type"] = track.type);
+			frontmatter["album"] = albumWikilink || track.album;
+			showDuration && (frontmatter["duration"] = track.duration);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = `${playing.artists} - ${playing.name}`;
+			frontmatter["aliases"] = `${track.artists} - ${track.name}`;
 		});
 	} catch (e) {
 		showNotice(e.message, true);
@@ -203,30 +203,30 @@ export const createTrackFile = async (
 	return file;
 };
 
-export const logPlaying = async (
+export const scrobbleItem = async (
 	app: App,
-	settings: obsidianfmDefaultSettings,
+	settings: scrobbleDefaultSettings,
 	input: string,
-	playing: TrackFormatted | AlbumFormatted | undefined,
+	item: ItemFormatted | undefined,
 	blockId?: string,
 ) => {
-	if (!playing) {
+	if (!item) {
 		throw new Error("Playback state not supported");
 	}
 
-	const { logAlbumAlwaysCreateNewTrackFiles } = settings;
+	const { scrobbleAlbumAlwaysCreatesNewTrackFiles } = settings;
 
 	let file: TFile;
 
-	if (playing.type === "Track") {
-		file = await createTrackFile(app, settings, playing);
+	if (item.type === "Track") {
+		file = await createTrackFile(app, settings, item);
 	}
 
-	if (playing.type === "Album") {
-		file = await createAlbumFile(app, settings, playing);
+	if (item.type === "Album") {
+		file = await createAlbumFile(app, settings, item);
 
-		if (logAlbumAlwaysCreateNewTrackFiles) {
-			for (const track of playing.tracks) {
+		if (scrobbleAlbumAlwaysCreatesNewTrackFiles) {
+			for (const track of item.tracks) {
 				await createTrackFile(app, settings, track);
 			}
 		}
@@ -234,7 +234,7 @@ export const logPlaying = async (
 
 	const filePath = file!.path;
 
-	const progress = "progress" in playing ? playing.progress : undefined;
+	const progress = "progress" in item ? item.progress : undefined;
 
 	await appendInput(app, filePath, input, progress, blockId);
 

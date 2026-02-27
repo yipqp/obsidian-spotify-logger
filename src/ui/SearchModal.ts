@@ -1,4 +1,4 @@
-import { App, debounce, Debouncer, Notice, SuggestModal } from "obsidian";
+import { App, debounce, Debouncer, SuggestModal } from "obsidian";
 import {
 	processAlbum,
 	processTrack,
@@ -8,12 +8,13 @@ import {
 } from "src/api";
 import { showNotice } from "src/utils";
 import {
-	PlayingType,
+	ItemType,
 	Track,
 	TrackFormatted,
 	AlbumFormatted,
 	SimplifiedAlbum,
 	MinimalItem,
+	ItemFormatted,
 } from "types";
 
 export class SearchModal extends SuggestModal<MinimalItem> {
@@ -23,12 +24,12 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 		[query: string, cb: (items: MinimalItem[]) => void],
 		void
 	>;
-	cb: (item: TrackFormatted | AlbumFormatted) => Promise<void>;
-	type: PlayingType;
+	cb: (item: ItemFormatted) => Promise<void>;
+	type: ItemType;
 
 	constructor(
 		app: App,
-		type: PlayingType,
+		type: ItemType,
 		cb: (item: MinimalItem) => Promise<void>,
 	) {
 		super(app);
@@ -104,7 +105,7 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 		_evt: MouseEvent | KeyboardEvent,
 	) {
 		showNotice(`Selected ${item.name}`);
-		let resolved: TrackFormatted | AlbumFormatted;
+		let resolved: ItemFormatted;
 
 		if (item.type === "Album") {
 			if (!item.href) {

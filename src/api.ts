@@ -7,7 +7,7 @@ import {
 	MinimalItem,
 	PlaybackState,
 	PlayHistory,
-	PlayingType,
+	ItemType,
 	RecentlyPlayedTracksPage,
 	SimplifiedAlbum,
 	SimplifiedArtist,
@@ -21,14 +21,14 @@ import {
 	sha256,
 	base64encode,
 	formatMs,
-	parsePlayingAsWikilink,
+	parseItemAsWikilink,
 	getFile,
 	showNotice,
 } from "src/utils";
-import { updateTrackFrontmatter } from "./SpotifyLogger";
+import { updateTrackFrontmatter } from "./Scrobbler";
 
 const clientId = "44e32ffa3b9c46398637431d6808481d";
-const redirectUri = "obsidian://obsidian-fm-spotify-auth";
+const redirectUri = "obsidian://scrobble-spotify-auth";
 const scope = "user-read-currently-playing user-read-recently-played";
 const codeVerifier = generateRandomString(64);
 
@@ -207,7 +207,7 @@ export const getRecentlyPlayed = async () => {
 	return data;
 };
 
-export const searchItem = async (query: string, type: PlayingType) => {
+export const searchItem = async (query: string, itemType: ItemType) => {
 	if (!query) {
 		return null;
 	}
@@ -215,7 +215,7 @@ export const searchItem = async (query: string, type: PlayingType) => {
 	const searchURL = new URL("https://api.spotify.com/v1/search");
 	const params = {
 		q: query,
-		type: type.toLowerCase(),
+		type: itemType.toLowerCase(),
 	};
 
 	searchURL.search = new URLSearchParams(params).toString();
@@ -229,34 +229,34 @@ export const tracksAsWikilinks = (
 	folderPath: string,
 	tracks: SimplifiedTrack[] | TrackFormatted[],
 	album: AlbumFormatted,
-	logAlbumAlwaysCreateNewTrackFiles: boolean,
+	scrobbleAlbumAlwaysCreateNewTrackFiles: boolean,
 ) => {
 	return tracks.map((track) => {
 		const trackFile = getFile(app, folderPath, track.id);
 		if (trackFile) {
-			// if this track was logged before, then link current album in that track's frontmatter[album]
+			// if this track was scrobbled before, then link current album in that track's frontmatter[album]
 			updateTrackFrontmatter(app, trackFile, album);
-		} else if (!logAlbumAlwaysCreateNewTrackFiles) {
+		} else if (!scrobbleAlbumAlwaysCreateNewTrackFiles) {
 			return track.name;
 		}
 
-		return parsePlayingAsWikilink(track);
+		return parseItemAsWikilink(track);
 	});
 };
 
 export const processCurrentlyPlayingResponse = async (
 	playbackState: PlaybackState,
-	type: PlayingType,
+	itemType: ItemType,
 ) => {
 	if (playbackState.item == null || playbackState.item.kind === "episode") {
 		throw new Error("Episodes not supported");
 	}
-	if (type === "Track") {
+	if (itemType === "Track") {
 		const trackInfo = processTrack(playbackState.item);
 		trackInfo.progress = formatMs(playbackState.progress_ms);
 		return trackInfo;
 	}
-	if (type === "Album") {
+	if (itemType === "Album") {
 		const albumLink = playbackState.item.album.href;
 		if (!albumLink) {
 			throw new Error("No album href found");

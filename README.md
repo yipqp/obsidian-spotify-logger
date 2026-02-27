@@ -1,6 +1,8 @@
-# obsidian.fm
+# Scrobble
 
-A Spotify plugin for [Obsidian](https://obsidian.md/) to quickly log your thoughts on any song or album, inspired by [last.fm](https://www.last.fm/) shoutboxes. 
+A Spotify plugin for [Obsidian](https://obsidian.md/) to quickly log your thoughts on any song or album, inspired by [Last.fm](https://www.last.fm/) scrobbles. 
+
+> A **scrobble** in the music tracking service Last.fm is a record of a song you've listened to. In this plugin, scrobbling a song means logging your thoughts on a song in a dedicated note.
 
 ## Features
 
@@ -11,29 +13,29 @@ A Spotify plugin for [Obsidian](https://obsidian.md/) to quickly log your though
 
 ## Preview
 
-https://github.com/user-attachments/assets/bc32fabf-ccb4-40bc-af76-e140deeae5fa
+link here
 
 ## Installation
 
-### Community plugins (currently unavailable)
+### Community plugins
 
 1. In settings, in the **Community plugins** tab, click **Browse**
-2. Search for **obsidian.fm**, then click **Install**
-3. Ensure **obsidian.fm** is enabled under **Installed plugins**
+2. Search for **Scrobble**, then click **Install**
+3. Ensure **Scrobble** is enabled under **Installed plugins**
 
 ### BRAT
 
 1. Install BRAT from the community plugins in Obsidian
-2. Copy the GitHub repository link: https://github.com/yipqp/obsidian.fm
+2. Copy the GitHub repository link: https://github.com/yipqp/obsidian-scrobble
 3. Open the command palette and run **BRAT: Plugins: Add a beta plugin for testing**
 4. Paste in the GitHub link and click **Add plugin**
-5. In settings, ensure **obsidian.fm** is enabled under the **Community plugins** tab
+5. In settings, ensure **Scrobble** is enabled under the **Community plugins** tab
 
 ### Manual
 
 1. On the GitHub repository, under **Releases**, download the three files under the latest release: **main.js**, **manifest.json**, and **styles.css**
-2. Locate the directory of your Obsidian vault, then make a new directory under **.obsidian/plugins** and name it **obsidian-fm**
-3. Move the three files you just downloaded into **obsidian-fm**
+2. Locate the directory of your Obsidian vault, then make a new directory under **.obsidian/plugins** and name it **obsidian-scrobble**
+3. Move the three files you just downloaded into **obsidian-scrobble**
 
 ## Note
 
@@ -41,7 +43,7 @@ This plugin does not require, but highly encourages, the use of the [Front Matte
 
 ## Usage
 
-- Open the command palette and search for **obsidian.fm: Connect Spotify**
+- Open the command palette and search for **Scrobble: Connect Spotify**
 - Log into Spotify and authorize access
 - Start using any commands in the command palette
 
@@ -49,8 +51,8 @@ This plugin does not require, but highly encourages, the use of the [Front Matte
 
 - **Connect Spotify**: connect your Spotify account
 - **Folder path**: path of folder to store newly created notes
-- **Create new file for each track when logging albums**: when logging albums, create a new note for each track in that album's tracklist if it hasn't been logged yet, then include wikilinks for these song notes in the album note's `tracks` frontmatter. When disabled (default behavior), only include wikilinks for song notes that already exist in the vault, and use plain text for the unlogged song notes.
-- **New file frontmatter preferences**
+- **Create new note for each track when scrobbling albums**: when scrobbling albums, create a new note for each track in that album's tracklist if it hasn't been scrobbled yet, then include wikilinks for these song notes in the album note's `tracks` frontmatter. When disabled (default behavior), only include wikilinks for song notes that already exist in the vault, and use plain text for the unlogged song notes.
+- **New note frontmatter preferences**
 	- **Type**: type of media, either "Track" or "Album"
 	- **Duration**: length of the track or album
 	- **Album release date**: release date of album (only relevant in album notes)

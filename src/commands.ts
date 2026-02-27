@@ -1,5 +1,5 @@
-import { LogModal } from "./ui/LogModal";
-import { logPlaying } from "src/SpotifyLogger";
+import { ScrobbleModal } from "./ui/ScrobbleModal";
+import { scrobbleItem } from "src/Scrobbler";
 import { SearchModal } from "./ui/SearchModal";
 import {
 	getAuthUrl,
@@ -8,20 +8,20 @@ import {
 	processCurrentlyPlayingResponse,
 	processRecentlyPlayed,
 } from "./api";
-import { PlayingTypeFormatted, PlayingType } from "types";
+import { ItemFormatted, ItemType } from "types";
 import { RecentSongsModal } from "./ui/RecentSongsModal";
 import { requireAuth, showNotice } from "./utils";
-import ObsidianFM from "./main";
+import Scrobble from "./main";
 
-export function registerCommands(plugin: ObsidianFM) {
-	const logSearchedSong = async (item: PlayingTypeFormatted) => {
+export function registerCommands(plugin: Scrobble) {
+	const scrobbleSearchedSong = async (item: ItemFormatted) => {
 		try {
-			new LogModal(
+			new ScrobbleModal(
 				plugin.app,
 				plugin.settings,
 				item,
 				async (input: string, blockId: string) => {
-					await logPlaying(
+					await scrobbleItem(
 						plugin.app,
 						plugin.settings,
 						input,
@@ -35,19 +35,19 @@ export function registerCommands(plugin: ObsidianFM) {
 		}
 	};
 
-	const logCurrentlyPlayingCb = async (playingType: PlayingType) => {
+	const scrobbleCurrentlyPlaying = async (itemType: ItemType) => {
 		try {
 			const currentlyPlayingJson = await getCurrentlyPlayingTrack();
 			const currentlyPlaying = await processCurrentlyPlayingResponse(
 				currentlyPlayingJson,
-				playingType,
+				itemType,
 			);
-			new LogModal(
+			new ScrobbleModal(
 				plugin.app,
 				plugin.settings,
 				currentlyPlaying,
 				async (input: string, blockId: string) => {
-					await logPlaying(
+					await scrobbleItem(
 						plugin.app,
 						plugin.settings,
 						input,
@@ -62,18 +62,18 @@ export function registerCommands(plugin: ObsidianFM) {
 	};
 
 	plugin.addCommand({
-		id: "log-currently-playing-track",
-		name: "Log currently playing song",
+		id: "scrobble-currently-playing-track",
+		name: "Scrobble currently playing song",
 		callback: requireAuth(async () => {
-			await logCurrentlyPlayingCb("Track");
+			await scrobbleCurrentlyPlaying("Track");
 		}),
 	});
 
 	plugin.addCommand({
-		id: "log-currently-playing-album",
-		name: "Log currently playing album",
+		id: "scrobble-currently-playing-album",
+		name: "Scrobble currently playing album",
 		callback: requireAuth(async () => {
-			await logCurrentlyPlayingCb("Album");
+			await scrobbleCurrentlyPlaying("Album");
 		}),
 	});
 
@@ -90,7 +90,7 @@ export function registerCommands(plugin: ObsidianFM) {
 		id: "search-track",
 		name: "Search songs",
 		callback: requireAuth(async () => {
-			new SearchModal(plugin.app, "Track", logSearchedSong).open();
+			new SearchModal(plugin.app, "Track", scrobbleSearchedSong).open();
 		}),
 	});
 
@@ -98,7 +98,7 @@ export function registerCommands(plugin: ObsidianFM) {
 		id: "search-album",
 		name: "Search albums",
 		callback: requireAuth(async () => {
-			new SearchModal(plugin.app, "Album", logSearchedSong).open();
+			new SearchModal(plugin.app, "Album", scrobbleSearchedSong).open();
 		}),
 	});
 
@@ -112,7 +112,7 @@ export function registerCommands(plugin: ObsidianFM) {
 			new RecentSongsModal(
 				plugin.app,
 				recentlyPlayedFormatted,
-				logSearchedSong,
+				scrobbleSearchedSong,
 			).open();
 		}),
 	});

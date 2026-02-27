@@ -6,30 +6,26 @@ import {
 	normalizePath,
 	TFile,
 } from "obsidian";
-import {
-	appendInput,
-	createAlbumFile,
-	createTrackFile,
-} from "src/SpotifyLogger";
-import { AlbumFormatted, PlayingTypeFormatted, TrackFormatted } from "types";
+import { appendInput, createAlbumFile, createTrackFile } from "src/Scrobbler";
+import { ItemFormatted } from "types";
 import {
 	generateBlockID,
-	nowPlayingAsString,
-	parsePlayingAsWikilink,
+	itemAsString,
+	parseItemAsWikilink,
 	reloadOFMT,
 	requireAuth,
 	showNotice,
 } from "src/utils";
 import { SearchModal } from "./SearchModal";
-import { obsidianfmDefaultSettings } from "src/settings";
+import { scrobbleDefaultSettings } from "src/settings";
 
-export class LogModal extends Modal {
+export class ScrobbleModal extends Modal {
 	public app: App;
-	private settings: obsidianfmDefaultSettings;
+	private settings: scrobbleDefaultSettings;
 	private folderPath: string;
 	private onSubmit: (input: string, blockId?: string) => void;
 	private blockId: string | null;
-	private playing: PlayingTypeFormatted;
+	private item: ItemFormatted;
 	private input = "";
 	private handleSubmit = async () => {
 		await this.updateFiles();
@@ -37,33 +33,33 @@ export class LogModal extends Modal {
 		this.blockId = null;
 		this.close();
 	};
-	private pendingPlayings: PlayingTypeFormatted[];
+	private pendingItems: ItemFormatted[];
 	private updateFiles = async () => {
-		while (this.pendingPlayings.length > 0) {
-			const playing = this.pendingPlayings.pop()!;
+		while (this.pendingItems.length > 0) {
+			const item = this.pendingItems.pop()!;
 			let file: TFile;
 
-			if (playing.type === "Track") {
-				file = await createTrackFile(this.app, this.settings, playing);
+			if (item.type === "Track") {
+				file = await createTrackFile(this.app, this.settings, item);
 			}
 
-			if (playing.type === "Album") {
-				file = await createAlbumFile(this.app, this.settings, playing);
+			if (item.type === "Album") {
+				file = await createAlbumFile(this.app, this.settings, item);
 			}
 
 			this.blockId = generateBlockID(6);
 
-			const curBlockMdLink = parsePlayingAsWikilink(
-				this.playing,
+			const curBlockMdLink = parseItemAsWikilink(
+				this.item,
 				true,
 				this.blockId,
 			);
 
-			const curTrackMdLink = parsePlayingAsWikilink(this.playing);
+			const curTrackMdLink = parseItemAsWikilink(this.item);
 
 			let progress;
-			if ("progress" in this.playing) {
-				progress = this.playing.progress;
+			if ("progress" in this.item) {
+				progress = this.item.progress;
 			}
 
 			await appendInput(
@@ -82,33 +78,33 @@ export class LogModal extends Modal {
 	};
 
 	private handleChooseSuggestion = (
-		item: TrackFormatted | AlbumFormatted,
+		item: ItemFormatted,
 		textComponent: TextComponent,
 	) => {
-		if (this.playing.id === item.id) {
+		if (this.item.id === item.id) {
 			showNotice("Cannot reference self", true);
 			return;
 		}
 
-		this.pendingPlayings.push(item);
-		const refTrackMdLink = parsePlayingAsWikilink(item);
+		this.pendingItems.push(item);
+		const refTrackMdLink = parseItemAsWikilink(item);
 		textComponent.setValue(textComponent.getValue() + refTrackMdLink);
 		this.input = textComponent.getValue();
 	};
 
 	constructor(
 		app: App,
-		settings: obsidianfmDefaultSettings,
-		currentlyPlaying: TrackFormatted | AlbumFormatted,
+		settings: scrobbleDefaultSettings,
+		item: ItemFormatted,
 		onSubmit: (input: string, blockId?: string) => void,
 	) {
 		super(app);
 		this.app = app;
 		this.settings = settings;
 		this.folderPath = settings.folderPath;
-		this.playing = currentlyPlaying;
+		this.item = item;
 		this.onSubmit = onSubmit;
-		this.pendingPlayings = [];
+		this.pendingItems = [];
 
 		const folder = this.app.vault.getFolderByPath(
 			normalizePath(this.folderPath),
@@ -120,13 +116,13 @@ export class LogModal extends Modal {
 			);
 		}
 
-		const title = nowPlayingAsString(this.playing);
+		const title = itemAsString(this.item);
 		this.setTitle(title);
 
-		this.contentEl.addClass("spotify-log-modal-content-container");
+		this.contentEl.addClass("scrobble-modal-content-container");
 
 		const textComponent = new TextComponent(this.contentEl);
-		textComponent.inputEl.addClass("spotify-log-modal-input");
+		textComponent.inputEl.addClass("scrobble-modal-input");
 		textComponent.inputEl.addEventListener("keydown", async (event) => {
 			if (!event.isComposing && event.key === "Enter") {
 				event.preventDefault();
@@ -139,29 +135,29 @@ export class LogModal extends Modal {
 		});
 
 		this.contentEl.createEl("div", {
-			text: this.playing.type === "Track" ? this.playing.progress : "",
-			cls: "spotify-log-modal-progress",
+			text: this.item.type === "Track" ? this.item.progress : "",
+			cls: "scrobble-modal-progress",
 		});
 
 		const buttonContainer = this.contentEl.createDiv(
-			"spotify-log-modal-button-container",
+			"scrobble-modal-button-container",
 		);
 
-		const onChooseSuggestionCb = async (item: PlayingTypeFormatted) => {
+		const onChooseSuggestionCb = async (item: ItemFormatted) => {
 			this.handleChooseSuggestion(item, textComponent);
 		};
 
 		const openSearchModal = requireAuth(async () => {
 			new SearchModal(
 				this.app,
-				this.playing.type,
+				this.item.type,
 				onChooseSuggestionCb,
 			).open();
 		});
 
 		const searchButton = new ButtonComponent(buttonContainer)
 			.setButtonText(
-				`Search ${this.playing.type === "Track" ? "songs" : "albums"}`,
+				`Search ${this.item.type === "Track" ? "songs" : "albums"}`,
 			)
 			.onClick(openSearchModal);
 

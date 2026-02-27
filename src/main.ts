@@ -1,19 +1,16 @@
 import { Plugin } from "obsidian";
 import { handleAuth } from "src/api";
-import {
-	OBSIDIANFM_DEFAULT_SETTINGS,
-	obsidianfmDefaultSettings,
-} from "./settings";
 import { registerCommands } from "./commands";
 import { SettingTab } from "./ui/SettingTab";
+import { SCROBBLE_DEFAULT_SETTINGS, scrobbleDefaultSettings } from "./settings";
 
-export default class ObsidianFM extends Plugin {
-	settings: obsidianfmDefaultSettings;
+export default class Scrobble extends Plugin {
+	settings: scrobbleDefaultSettings;
 
 	async onload() {
 		await this.loadSettings();
 		this.registerObsidianProtocolHandler(
-			"obsidian-fm-spotify-auth",
+			"scrobble-spotify-auth",
 			async (e) => {
 				handleAuth(e);
 			},
@@ -27,7 +24,7 @@ export default class ObsidianFM extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
-			OBSIDIANFM_DEFAULT_SETTINGS,
+			SCROBBLE_DEFAULT_SETTINGS,
 			await this.loadData(),
 		);
 	}

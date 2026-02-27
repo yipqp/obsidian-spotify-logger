@@ -1,12 +1,12 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "src/ui/FolderSuggest";
 import { getAuthUrl } from "src/api";
-import ObsidianFM from "src/main";
+import Scrobble from "src/main";
 
 export class SettingTab extends PluginSettingTab {
-	plugin: ObsidianFM;
+	plugin: Scrobble;
 
-	constructor(app: App, plugin: ObsidianFM) {
+	constructor(app: App, plugin: Scrobble) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -21,9 +21,6 @@ export class SettingTab extends PluginSettingTab {
 			.addButton((button) =>
 				button.setButtonText("Connect").onClick(async () => {
 					const authUrl = await getAuthUrl();
-					if (!authUrl) {
-						// do something
-					}
 					window.open(authUrl);
 				}),
 			);
@@ -50,14 +47,15 @@ export class SettingTab extends PluginSettingTab {
 		});
 
 		new Setting(containerEl)
-			.setName("Create new file for each track when logging albums")
+			.setName("Create new note for each track when scrobbling albums")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(
-						this.plugin.settings.logAlbumAlwaysCreateNewTrackFiles,
+						this.plugin.settings
+							.scrobbleAlbumAlwaysCreatesNewTrackFiles,
 					)
 					.onChange(async (value) => {
-						this.plugin.settings.logAlbumAlwaysCreateNewTrackFiles =
+						this.plugin.settings.scrobbleAlbumAlwaysCreatesNewTrackFiles =
 							value;
 						await this.plugin.saveSettings();
 						this.display();
@@ -65,7 +63,7 @@ export class SettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("New file frontmatter preferences")
+			.setName("New note frontmatter preferences")
 			.setHeading();
 
 		new Setting(containerEl)

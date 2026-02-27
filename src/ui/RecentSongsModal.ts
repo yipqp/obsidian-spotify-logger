@@ -1,10 +1,4 @@
-import {
-	App,
-	FuzzyMatch,
-	FuzzySuggestModal,
-	Notice,
-	renderResults,
-} from "obsidian";
+import { App, FuzzyMatch, FuzzySuggestModal, renderResults } from "obsidian";
 import { showNotice } from "src/utils";
 import { TrackFormatted } from "types";
 

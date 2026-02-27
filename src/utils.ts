@@ -1,6 +1,6 @@
 import { App, normalizePath, Notice, TFile } from "obsidian";
 import {
-	AlbumFormatted,
+	ItemFormatted,
 	MinimalItem,
 	SimplifiedTrack,
 	TrackFormatted,
@@ -71,14 +71,14 @@ export const generateIDFromTrack = async (
 		.slice(0, 22); // arbitrarily chose 22, it's the length of Spotify ID
 };
 
-export const parsePlayingAsWikilink = (
-	playing: MinimalItem | SimplifiedTrack,
+export const parseItemAsWikilink = (
+	item: MinimalItem | SimplifiedTrack,
 	embedLinkedContent?: boolean,
 	blockId?: string,
 ): string => {
 	const prefix = embedLinkedContent ? "!" : "";
 	const blockIdFormatted = blockId ? `#^${blockId}` : "";
-	return `${prefix}[[${playing.id}${blockIdFormatted}|${playing.name}]]`;
+	return `${prefix}[[${item.id}${blockIdFormatted}|${item.name}]]`;
 };
 
 export const getFilePath = (folderPath: string, id: string): string => {
@@ -92,7 +92,7 @@ export const getFile = (
 ): TFile | null => {
 	const filePath = getFilePath(folderPath, id);
 
-	let file = app.vault.getFileByPath(filePath);
+	const file = app.vault.getFileByPath(filePath);
 	if (file) {
 		return file;
 	}
@@ -100,14 +100,12 @@ export const getFile = (
 	return null;
 };
 
-export const nowPlayingAsString = (
-	playing: AlbumFormatted | TrackFormatted,
-) => {
-	return `${playing.artists} - ${playing.name}`;
+export const itemAsString = (item: ItemFormatted) => {
+	return `${item.artists} - ${item.name}`;
 };
 
 export const showNotice = (message: string, isError = false) => {
-	const messageFormatted = `[obsidian.fm] ${isError ? "Error: " : ""}${message}`;
+	const messageFormatted = `[Scrobble] ${isError ? "Error: " : ""}${message}`;
 	new Notice(`${messageFormatted}`, 3500);
 };
 

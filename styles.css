@@ -1,16 +1,16 @@
-.spotify-log-modal-content-container { 
+.scrobble-modal-content-container { 
 	display: flex;
 	flex-flow: column;
 	gap: 0.75em;
 }
 
-.spotify-log-modal-button-container {
+.scrobble-modal-button-container {
 	display: flex;
 	justify-content: space-between;
 }
 
 /* make input take full width */
-.spotify-log-modal-input {
+.scrobble-modal-input {
 	resize: vertical;
 	flex: 1;
 }
