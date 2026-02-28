@@ -24,24 +24,46 @@ export class ScrobbleModal extends Modal {
 	private settings: scrobbleDefaultSettings;
 	private folderPath: string;
 	private onSubmit: (input: string, blockId?: string) => void;
-	private blockId: string | null;
+	private blockId: string | undefined;
 	private item: ItemFormatted;
 	private input = "";
-	private pendingItems: ItemFormatted[];
+	private pendingReferences: ItemFormatted[];
 	private handleSubmit = async () => {
-		await this.updateFiles();
-		this.onSubmit(this.input, this.blockId ?? undefined);
-		this.blockId = null;
-		this.pendingItems = [];
+		await this.createReferences();
+		this.onSubmit(this.input, this.blockId);
+		this.blockId = undefined;
+		this.pendingReferences = [];
+
 		// without this, Obsidian Front Matter Title won't know new files
 		// were created, since active leaf may not have changed
 		reloadOFMT(this.app);
+
 		this.close();
 	};
-	private updateFiles = async () => {
-		this.blockId = generateBlockID(6);
-		while (this.pendingItems.length > 0) {
-			const item = this.pendingItems.pop()!;
+	private createReferences = async () => {
+		if (this.pendingReferences.length === 0) {
+			return;
+		}
+
+		// only generate blockId if there is at least one valid pending
+		// reference, and only generate blockId once per scrobble
+		let blockIdGenerated = false;
+
+		while (this.pendingReferences.length > 0) {
+			const item = this.pendingReferences.pop()!;
+			const itemMdLink = parseItemAsWikilink(item);
+
+			// check if user changed their mind about including this item as a
+			// reference
+			if (!this.input.includes(itemMdLink)) {
+				continue;
+			}
+
+			if (!blockIdGenerated) {
+				this.blockId = generateBlockID(6);
+				blockIdGenerated = true;
+			}
+
 			let file: TFile;
 
 			if (item.type === "Track") {
@@ -60,10 +82,8 @@ export class ScrobbleModal extends Modal {
 
 			const curTrackMdLink = parseItemAsWikilink(this.item);
 
-			let progress;
-			if ("progress" in this.item) {
-				progress = this.item.progress;
-			}
+			const progress =
+				"progress" in this.item ? this.item.progress : undefined;
 
 			await appendInput(
 				this.app,
@@ -85,7 +105,7 @@ export class ScrobbleModal extends Modal {
 			return;
 		}
 
-		this.pendingItems.push(item);
+		this.pendingReferences.push(item);
 		const refTrackMdLink = parseItemAsWikilink(item);
 		textComponent.setValue(textComponent.getValue() + refTrackMdLink);
 		this.input = textComponent.getValue();
@@ -103,7 +123,7 @@ export class ScrobbleModal extends Modal {
 		this.folderPath = settings.folderPath;
 		this.item = item;
 		this.onSubmit = onSubmit;
-		this.pendingItems = [];
+		this.pendingReferences = [];
 
 		const folder = this.app.vault.getFolderByPath(
 			normalizePath(this.folderPath),
