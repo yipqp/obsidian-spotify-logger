@@ -13,7 +13,7 @@ A Spotify plugin for [Obsidian](https://obsidian.md/) to quickly log your though
 
 ## Preview
 
-link here
+https://github.com/user-attachments/assets/5edd56a3-eb8d-434d-a8fa-a17e1e9dcd25
 
 ## Installation
 
