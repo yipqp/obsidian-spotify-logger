@@ -80,7 +80,7 @@ export const parseItemAsWikilink = (
 ): string => {
 	const prefix = embedLinkedContent ? "!" : "";
 	const blockIdFormatted = blockId ? `#^${blockId}` : "";
-	const display = wikilinkShowArtists ? itemAsString(item) : item.name;
+	const display = itemAsString(item, wikilinkShowArtists);
 	return `${prefix}[[${item.id}${blockIdFormatted}|${display}]]`;
 };
 
@@ -103,8 +103,11 @@ export const getFile = (
 	return null;
 };
 
-export const itemAsString = (item: MinimalItem | SimplifiedTrack) => {
-	return `${item.artists} - ${item.name}`;
+export const itemAsString = (
+	item: MinimalItem | SimplifiedTrack,
+	showArtists = false,
+) => {
+	return showArtists ? `${item.artists} - ${item.name}` : `${item.name}`;
 };
 
 export const showNotice = (message: string, isError = false) => {

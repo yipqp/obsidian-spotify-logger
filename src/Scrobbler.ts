@@ -5,6 +5,7 @@ import {
 	generateIdFromTrack,
 	getFile,
 	getFilePath,
+	itemAsString,
 	parseItemAsWikilink,
 	showNotice,
 } from "./utils";
@@ -116,6 +117,7 @@ export const createAlbumFile = async (
 		showType,
 		showDuration,
 		showAlbumReleaseDate,
+		aliasShowArtists,
 	} = settings;
 	let file = getFile(app, folderPath, album.id);
 
@@ -145,7 +147,7 @@ export const createAlbumFile = async (
 				album,
 			);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = `${album.artists} - ${album.name}`;
+			frontmatter["aliases"] = itemAsString(album, aliasShowArtists);
 		});
 	} catch (e) {
 		showNotice(e.message, true);
@@ -160,7 +162,8 @@ export const createTrackFile = async (
 	settings: scrobbleDefaultSettings,
 	track: TrackFormatted,
 ) => {
-	const { folderPath, showTags, showType, showDuration } = settings;
+	const { folderPath, showTags, showType, showDuration, aliasShowArtists } =
+		settings;
 
 	if (!track.id) {
 		// playing from local file
@@ -193,7 +196,7 @@ export const createTrackFile = async (
 			frontmatter["album"] = albumWikilink || track.album;
 			showDuration && (frontmatter["duration"] = track.duration);
 			showTags && (frontmatter["tags"] = "");
-			frontmatter["aliases"] = `${track.artists} - ${track.name}`;
+			frontmatter["aliases"] = itemAsString(track, aliasShowArtists);
 		});
 	} catch (e) {
 		showNotice(e.message, true);
