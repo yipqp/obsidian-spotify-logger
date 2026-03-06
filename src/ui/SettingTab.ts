@@ -63,7 +63,7 @@ export class SettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Wikilinks: Show artists")
+			.setName("Wikilinks: show artists")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.wikilinkShowArtists)
@@ -136,7 +136,7 @@ export class SettingTab extends PluginSettingTab {
 			.setDesc(`Insert empty "tags" property`);
 
 		new Setting(containerEl)
-			.setName("Aliases: Show artists")
+			.setName("Aliases: show artists")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.aliasShowArtists)
