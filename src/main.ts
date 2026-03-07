@@ -26,7 +26,7 @@ export default class Scrobble extends Plugin {
 		this.settings = Object.assign(
 			{},
 			SCROBBLE_DEFAULT_SETTINGS,
-			await this.loadData(),
+			await this.loadData() as Partial<scrobbleDefaultSettings>,
 		);
 	}
 

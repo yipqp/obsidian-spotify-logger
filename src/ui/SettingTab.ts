@@ -136,7 +136,7 @@ export class SettingTab extends PluginSettingTab {
 			.setDesc(`Insert empty "tags" property`);
 
 		new Setting(containerEl)
-			.setName("Aliases: show artists")
+			.setName("Aliases: Show artists")
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.aliasShowArtists)

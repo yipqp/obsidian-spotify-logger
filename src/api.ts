@@ -4,16 +4,17 @@ import { App, ObsidianProtocolData, requestUrl } from "obsidian";
 import {
 	Album,
 	AlbumFormatted,
-	MinimalItem,
-	PlaybackState,
+	CurrentlyPlaying,
 	PlayHistory,
 	ItemType,
 	RecentlyPlayedTracksPage,
 	SimplifiedAlbum,
 	SimplifiedArtist,
-	SimplifiedTrack,
 	TrackFormatted,
 	TrackLike,
+	AccessToken,
+	SearchResults,
+	ItemFormatted,
 } from "types";
 import { URLSearchParams } from "url";
 import {
@@ -38,7 +39,7 @@ export const setCodeVerifier = (app: App) => {
 };
 
 export const getAuthUrl = async (app: App) => {
-	const codeVerifier = app.loadLocalStorage("code_verifier");
+	const codeVerifier = app.loadLocalStorage("code_verifier") as string;
 	const authUrl = new URL("https://accounts.spotify.com/authorize");
 	const hashed = await sha256(codeVerifier);
 	const codeChallenge = base64encode(hashed);
@@ -71,7 +72,7 @@ const setTokens = (
 
 // exchange auth code for access token
 export const requestToken = async (app: App, code: string) => {
-	const codeVerifier = app.loadLocalStorage("code_verifier");
+	const codeVerifier = app.loadLocalStorage("code_verifier") as string;
 	if (!codeVerifier) {
 		showNotice("Code verifier not found", true);
 		return null;
@@ -92,7 +93,7 @@ export const requestToken = async (app: App, code: string) => {
 		}).toString(),
 	});
 
-	const data = response.json;
+	const data: AccessToken = response.json;
 
 	setTokens(app, data.access_token, data.expires_in, data.refresh_token);
 
@@ -100,7 +101,7 @@ export const requestToken = async (app: App, code: string) => {
 };
 
 const refreshTokens = async (app: App) => {
-	const refreshToken = app.loadLocalStorage("refresh_token");
+	const refreshToken = app.loadLocalStorage("refresh_token") as string;
 	if (!refreshToken) {
 		showNotice("Refresh token not found", true);
 		return null;
@@ -119,7 +120,7 @@ const refreshTokens = async (app: App) => {
 		}).toString(),
 	});
 
-	const data = response.json;
+	const data: AccessToken = response.json;
 
 	setTokens(app, data.access_token, data.expires_in, data.refresh_token);
 
@@ -137,7 +138,7 @@ export const handleAuth = async (app: App, data: ObsidianProtocolData) => {
 };
 
 const getAccessToken = async (app: App) => {
-	const expirationString = app.loadLocalStorage("expires_in");
+	const expirationString = app.loadLocalStorage("expires_in") as string;
 	if (!expirationString) {
 		showNotice("Could not get expires_in", true);
 		return null;
@@ -148,16 +149,16 @@ const getAccessToken = async (app: App) => {
 		await refreshTokens(app);
 	}
 
-	const token = app.loadLocalStorage("access_token");
+	const token = app.loadLocalStorage("access_token") as string;
 	return token;
 };
 
 // to prevent checking authentication through api call
 // will fail if user revokes permissions via Spotify
 export const isAuthenticated = (app: App) => {
-	return (
-		app.loadLocalStorage("access_token") &&
-		app.loadLocalStorage("refresh_token")
+	return !!(
+		(app.loadLocalStorage("access_token") as string) &&
+		(app.loadLocalStorage("refresh_token") as string)
 	);
 };
 
@@ -193,22 +194,22 @@ export const callEndpoint = async (app: App, url: string) => {
 };
 
 export const getCurrentlyPlayingTrack = async (app: App) => {
-	const data = await callEndpoint(
+	const data = (await callEndpoint(
 		app,
 		"https://api.spotify.com/v1/me/player/currently-playing",
-	);
+	)) as CurrentlyPlaying;
 	return data;
 };
 
 export const getRecentlyPlayed = async (app: App) => {
-	const data = await callEndpoint(
+	const data = (await callEndpoint(
 		app,
 		"https://api.spotify.com/v1/me/player/recently-played",
-	);
+	)) as RecentlyPlayedTracksPage;
 	return data;
 };
 
-export const searchItem = async (
+export const searchItem = async <T extends ItemType>(
 	app: App,
 	query: string,
 	itemType: ItemType,
@@ -225,7 +226,11 @@ export const searchItem = async (
 
 	searchURL.search = new URLSearchParams(params).toString();
 
-	const data = callEndpoint(app, searchURL.toString());
+	const data = (await callEndpoint(
+		app,
+		searchURL.toString(),
+	)) as SearchResults<[T]>;
+
 	return data;
 };
 
@@ -233,7 +238,7 @@ export const tracksAsWikilinks = (
 	app: App,
 	settings: scrobbleDefaultSettings,
 	folderPath: string,
-	tracks: SimplifiedTrack[] | TrackFormatted[],
+	tracks: TrackFormatted[],
 	album: AlbumFormatted,
 ) => {
 	return Promise.all(
@@ -253,23 +258,23 @@ export const tracksAsWikilinks = (
 
 export const processCurrentlyPlayingResponse = async (
 	app: App,
-	playbackState: PlaybackState,
+	playbackState: CurrentlyPlaying,
 	itemType: ItemType,
 ) => {
 	if (playbackState.item == null || playbackState.item.kind === "episode") {
 		throw new Error("Episodes not supported");
 	}
-	if (itemType === "Track") {
+	if (itemType === "track") {
 		const trackInfo = processTrack(playbackState.item);
 		trackInfo.progress = formatMs(playbackState.progress_ms);
 		return trackInfo;
 	}
-	if (itemType === "Album") {
+	if (itemType === "album") {
 		const albumLink = playbackState.item.album.href;
 		if (!albumLink) {
 			throw new Error("No album href found");
 		}
-		const album = await callEndpoint(app, albumLink);
+		const album = (await callEndpoint(app, albumLink)) as Album;
 		const albumInfo = processAlbum(album);
 		return albumInfo;
 	}
@@ -299,7 +304,7 @@ const getAlbumLength = (album: Album) => {
 // returns object with relevant information about the playing track
 export const processTrack = (track: TrackLike): TrackFormatted => {
 	return {
-		type: "Track",
+		type: "track",
 		album: track.album.name,
 		albumid: track.album.id,
 		artists: formatArtists(track.artists),
@@ -310,11 +315,13 @@ export const processTrack = (track: TrackLike): TrackFormatted => {
 	};
 };
 
-export const processSimplifiedAlbum = (album: SimplifiedAlbum): MinimalItem => {
+export const processSimplifiedAlbum = (
+	album: SimplifiedAlbum,
+): ItemFormatted => {
 	return {
 		href: album.href,
 		id: album.id,
-		type: "Album",
+		type: "album",
 		image: album.images[album.images.length - 1],
 		name: album.name,
 		artists: formatArtists(album.artists),
@@ -323,7 +330,7 @@ export const processSimplifiedAlbum = (album: SimplifiedAlbum): MinimalItem => {
 
 export const processAlbum = (album: Album): AlbumFormatted => {
 	return {
-		type: "Album",
+		type: "album",
 		image: album.images[album.images.length - 1],
 		artists: formatArtists(album.artists),
 		releaseDate: album.release_date,

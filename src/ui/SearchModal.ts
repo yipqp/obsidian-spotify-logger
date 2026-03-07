@@ -7,34 +7,26 @@ import {
 	processSimplifiedAlbum,
 } from "src/api";
 import { showNotice } from "src/utils";
-import {
-	ItemType,
-	Track,
-	TrackFormatted,
-	AlbumFormatted,
-	SimplifiedAlbum,
-	MinimalItem,
-	ItemFormatted,
-} from "types";
+import { ItemType, Track, SimplifiedAlbum, ItemFormatted, Album } from "types";
 
-export class SearchModal extends SuggestModal<MinimalItem> {
+export class SearchModal extends SuggestModal<ItemFormatted> {
 	isLoading: boolean;
 	lastQuery: string;
 	searchDebouncer: Debouncer<
-		[query: string, cb: (items: MinimalItem[]) => void],
+		[query: string, cb: (items: ItemFormatted[]) => void],
 		void
 	>;
 	cb: (item: ItemFormatted) => void;
 	type: ItemType;
 
-	constructor(app: App, type: ItemType, cb: (item: MinimalItem) => void) {
+	constructor(app: App, type: ItemType, cb: (item: ItemFormatted) => void) {
 		super(app);
 		this.isLoading = false;
 		this.lastQuery = "";
 		this.cb = cb;
 		this.type = type;
 		this.searchDebouncer = debounce(
-			async (query: string, cb: (items: MinimalItem[]) => void) => {
+			async (query: string, cb: (items: ItemFormatted[]) => void) => {
 				if (query === "" || query === this.lastQuery) {
 					return Promise.resolve([]);
 				}
@@ -49,11 +41,12 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 
 				let itemsFormatted;
 
-				if (this.type === "Track") {
+				if (this.type === "track") {
 					itemsFormatted = data.tracks.items.map((track: Track) =>
 						processTrack(track),
 					);
-				} else if (this.type === "Album") {
+				} else {
+					// is Album
 					itemsFormatted = data.albums.items.map(
 						(album: SimplifiedAlbum) =>
 							processSimplifiedAlbum(album),
@@ -66,12 +59,12 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 			300,
 			true,
 		);
-		this.inputEl.placeholder = `Search ${this.type === "Track" ? "songs" : "albums"}...`;
+		this.inputEl.placeholder = `Search ${this.type === "track" ? "songs" : "albums"}...`;
 	}
 
 	// called when input is changed
 	// reference: https://github.com/bbawj/obsidian-semantic-search/blob/45e2cc2e10b78bcc357287a4abc22a81df7ce36d/src/ui/linkSuggest.ts#L45
-	async getSuggestions(query: string): Promise<MinimalItem[]> {
+	async getSuggestions(query: string): Promise<ItemFormatted[]> {
 		this.isLoading = true;
 		return new Promise((resolve) => {
 			this.searchDebouncer(query, (query) => {
@@ -80,7 +73,7 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 		});
 	}
 
-	renderSuggestion(item: MinimalItem, el: HTMLElement) {
+	renderSuggestion(item: ItemFormatted, el: HTMLElement) {
 		el.addClass("track-container");
 		const imageEl = el.createEl("img", { cls: "track-img" });
 
@@ -96,22 +89,29 @@ export class SearchModal extends SuggestModal<MinimalItem> {
 		});
 	}
 
-	onChooseSuggestion(item: MinimalItem, _evt: MouseEvent | KeyboardEvent) {
+	onChooseSuggestion(item: ItemFormatted, _evt: MouseEvent | KeyboardEvent) {
 		// wrap async function in IIFE because onChooseSuggestion in superclass isn't async
 		(async () => {
 			showNotice(`Selected ${item.name}`);
 			let resolved: ItemFormatted;
 
-			if (item.type === "Album") {
+			if (item.type === "album") {
 				if (!item.href) {
 					throw new Error("Album href missing");
 				}
-				const fetchedAlbum = await callEndpoint(this.app, item.href);
-				resolved = processAlbum(fetchedAlbum) as AlbumFormatted;
+				const fetchedAlbum = (await callEndpoint(
+					this.app,
+					item.href,
+				)) as Album;
+				resolved = processAlbum(fetchedAlbum);
 			} else {
-				resolved = item as TrackFormatted;
+				resolved = item;
 			}
 			this.cb(resolved);
-		})().catch((e) => showNotice(e, true));
+		})().catch((e) => {
+			if (e instanceof Error) {
+				showNotice(e.message, true);
+			}
+		});
 	}
 }

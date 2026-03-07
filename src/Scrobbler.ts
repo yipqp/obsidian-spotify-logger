@@ -1,5 +1,12 @@
 import { App, moment, TFile } from "obsidian";
-import { AlbumFormatted, ItemFormatted, TrackFormatted } from "types";
+import {
+	AlbumFormatted,
+	AlbumFrontmatter,
+	ItemFormattedType,
+	MinimalFrontmatter,
+	TrackFormatted,
+	TrackFrontmatter,
+} from "types";
 import { tracksAsWikilinks } from "./api";
 import {
 	generateIdFromTrack,
@@ -76,12 +83,18 @@ export const updateTrackFrontmatter = async (
 	album: AlbumFormatted,
 ) => {
 	try {
-		await app.fileManager.processFrontMatter(trackFile, (frontmatter) => {
-			const albumWikilink = parseItemAsWikilink(album, false);
-			frontmatter["album"] = albumWikilink;
-		});
+		await app.fileManager.processFrontMatter(
+			trackFile,
+			(frontmatter: TrackFrontmatter) => {
+				const albumWikilink = parseItemAsWikilink(album, false);
+				frontmatter["album"] = albumWikilink;
+			},
+		);
 	} catch (e) {
-		showNotice(e.message, true);
+		if (e instanceof Error) {
+			console.error(e);
+			showNotice(e.message, true);
+		}
 	}
 };
 
@@ -91,18 +104,24 @@ export const updateAlbumFrontmatter = async (
 	track: TrackFormatted,
 ) => {
 	try {
-		await app.fileManager.processFrontMatter(albumFile, (frontmatter) => {
-			const tracks = frontmatter["tracks"];
-			const trackName = track.name;
-			const trackWikilink = parseItemAsWikilink(track, false);
-			const index = tracks.indexOf(trackName);
+		await app.fileManager.processFrontMatter(
+			albumFile,
+			(frontmatter: AlbumFrontmatter) => {
+				const tracks = frontmatter["tracks"];
+				const trackName = track.name;
+				const trackWikilink = parseItemAsWikilink(track, false);
+				const index = tracks.indexOf(trackName);
 
-			if (index !== -1) {
-				tracks[index] = trackWikilink;
-			}
-		});
+				if (index !== -1) {
+					tracks[index] = trackWikilink;
+				}
+			},
+		);
 	} catch (e) {
-		showNotice(e.message, true);
+		if (e instanceof Error) {
+			console.error(e);
+			showNotice(e.message, true);
+		}
 	}
 };
 
@@ -110,7 +129,7 @@ const createFile = async (
 	app: App,
 	settings: scrobbleDefaultSettings,
 	id: string,
-	setFrontmatter: (frontmatter: any) => void,
+	setFrontmatter: (frontmatter: MinimalFrontmatter) => void,
 ) => {
 	const { folderPath } = settings;
 
@@ -121,11 +140,17 @@ const createFile = async (
 	file = await app.vault.create(filePath, "");
 
 	try {
-		await app.fileManager.processFrontMatter(file, (frontmatter) => {
-			setFrontmatter(frontmatter);
-		});
+		await app.fileManager.processFrontMatter(
+			file,
+			(frontmatter: MinimalFrontmatter) => {
+				setFrontmatter(frontmatter);
+			},
+		);
 	} catch (e) {
-		showNotice(e.message, true);
+		if (e instanceof Error) {
+			console.error(e);
+			showNotice(e.message, true);
+		}
 	}
 
 	return file;
@@ -154,20 +179,25 @@ export const createAlbumFile = async (
 		album,
 	);
 
-	return createFile(app, settings, album.id, (frontmatter) => {
-		// use https://github.com/snezhig/obsidian-front-matter-title to display
-		// frontmatter["name"] as the filename
+	return createFile(
+		app,
+		settings,
+		album.id,
+		(frontmatter: AlbumFrontmatter) => {
+			// use https://github.com/snezhig/obsidian-front-matter-title to display
+			// frontmatter["name"] as the filename
 
-		frontmatter["name"] = album.name;
-		frontmatter["artists"] = album.artists;
-		if (showType) frontmatter["type"] = album.type;
-		if (showAlbumReleaseDate)
-			frontmatter["release date"] = album.releaseDate;
-		if (showDuration) frontmatter["duration"] = album.duration;
-		frontmatter["tracks"] = tracksFrontmatter;
-		if (showTags) frontmatter["tags"] = "";
-		frontmatter["aliases"] = itemAsString(album, aliasShowArtists);
-	});
+			frontmatter["name"] = album.name;
+			frontmatter["artists"] = album.artists;
+			if (showType) frontmatter["type"] = album.type;
+			if (showAlbumReleaseDate)
+				frontmatter["release date"] = album.releaseDate;
+			if (showDuration) frontmatter["duration"] = album.duration;
+			frontmatter["tracks"] = tracksFrontmatter;
+			if (showTags) frontmatter["tags"] = "";
+			frontmatter["aliases"] = itemAsString(album, aliasShowArtists);
+		},
+	);
 };
 
 // create new track file in folder path if not exist, and return it
@@ -197,22 +227,27 @@ export const createTrackFile = async (
 		await updateAlbumFrontmatter(app, albumFile, track);
 	}
 
-	return createFile(app, settings, track.id, (frontmatter) => {
-		frontmatter["name"] = track.name;
-		frontmatter["artists"] = track.artists;
-		if (showType) frontmatter["type"] = track.type;
-		frontmatter["album"] = albumWikilink || track.album;
-		if (showDuration) frontmatter["duration"] = track.duration;
-		if (showTags) frontmatter["tags"] = "";
-		frontmatter["aliases"] = itemAsString(track, aliasShowArtists);
-	});
+	return createFile(
+		app,
+		settings,
+		track.id,
+		(frontmatter: TrackFrontmatter) => {
+			frontmatter["name"] = track.name;
+			frontmatter["artists"] = track.artists;
+			if (showType) frontmatter["type"] = track.type;
+			frontmatter["album"] = albumWikilink || track.album;
+			if (showDuration) frontmatter["duration"] = track.duration;
+			if (showTags) frontmatter["tags"] = "";
+			frontmatter["aliases"] = itemAsString(track, aliasShowArtists);
+		},
+	);
 };
 
 export const scrobbleItem = async (
 	app: App,
 	settings: scrobbleDefaultSettings,
 	input: string,
-	item: ItemFormatted | undefined,
+	item: ItemFormattedType | undefined,
 	blockId?: string,
 ) => {
 	if (!item) {
@@ -223,11 +258,11 @@ export const scrobbleItem = async (
 
 	let file: TFile;
 
-	if (item.type === "Track") {
+	if (item.type === "track") {
 		file = await createTrackFile(app, settings, item);
 	}
 
-	if (item.type === "Album") {
+	if (item.type === "album") {
 		file = await createAlbumFile(app, settings, item);
 
 		if (scrobbleAlbumAlwaysCreatesNewTrackFiles) {

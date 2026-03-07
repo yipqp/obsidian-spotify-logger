@@ -1,12 +1,6 @@
 import { App, normalizePath, Notice, TFile } from "obsidian";
-import {
-	ItemFormatted,
-	MinimalItem,
-	SimplifiedTrack,
-	TrackFormatted,
-} from "types";
+import { MinimalItem, TrackFormatted } from "types";
 import { isAuthenticated } from "./api";
-import { scrobbleDefaultSettings } from "./settings";
 
 export const generateRandomString = (length: number) => {
 	const possible =
@@ -73,7 +67,7 @@ export const generateIdFromTrack = async (
 };
 
 export const parseItemAsWikilink = (
-	item: MinimalItem | SimplifiedTrack,
+	item: MinimalItem,
 	wikilinkShowArtists: boolean,
 	embedLinkedContent?: boolean,
 	blockId?: string,
@@ -103,10 +97,7 @@ export const getFile = (
 	return null;
 };
 
-export const itemAsString = (
-	item: MinimalItem | SimplifiedTrack,
-	showArtists: boolean,
-) => {
+export const itemAsString = (item: MinimalItem, showArtists: boolean) => {
 	return showArtists ? `${item.artists} - ${item.name}` : `${item.name}`;
 };
 

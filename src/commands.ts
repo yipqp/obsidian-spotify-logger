@@ -9,13 +9,13 @@ import {
 	processCurrentlyPlayingResponse,
 	processRecentlyPlayed,
 } from "./api";
-import { ItemFormatted, ItemType } from "types";
+import { ItemFormattedType, ItemType } from "types";
 import { RecentSongsModal } from "./ui/RecentSongsModal";
 import { showNotice } from "./utils";
 import Scrobble from "./main";
 
 export function registerCommands(plugin: Scrobble) {
-	const scrobbleSearchedSong = (item: ItemFormatted) => {
+	const scrobbleSearchedSong = (item: ItemFormattedType) => {
 		try {
 			new ScrobbleModal(
 				plugin.app,
@@ -31,8 +31,10 @@ export function registerCommands(plugin: Scrobble) {
 					);
 				},
 			).open();
-		} catch (err) {
-			showNotice(err.message, true);
+		} catch (e) {
+			if (e instanceof Error) {
+				showNotice(e.message, true);
+			}
 		}
 	};
 
@@ -60,8 +62,10 @@ export function registerCommands(plugin: Scrobble) {
 					);
 				},
 			).open();
-		} catch (err) {
-			showNotice(err.message, true);
+		} catch (e) {
+			if (e instanceof Error) {
+				showNotice(e.message, true);
+			}
 		}
 	};
 
@@ -71,7 +75,7 @@ export function registerCommands(plugin: Scrobble) {
 		checkCallback: (checking: boolean) => {
 			if (isAuthenticated(plugin.app)) {
 				if (!checking) {
-					void scrobbleCurrentlyPlaying("Track");
+					void scrobbleCurrentlyPlaying("track");
 				}
 				return true;
 			}
@@ -86,7 +90,7 @@ export function registerCommands(plugin: Scrobble) {
 		checkCallback: (checking: boolean) => {
 			if (isAuthenticated(plugin.app)) {
 				if (!checking) {
-					void scrobbleCurrentlyPlaying("Album");
+					void scrobbleCurrentlyPlaying("album");
 				}
 				return true;
 			}
@@ -112,7 +116,7 @@ export function registerCommands(plugin: Scrobble) {
 				if (!checking) {
 					new SearchModal(
 						plugin.app,
-						"Track",
+						"track",
 						scrobbleSearchedSong,
 					).open();
 				}
@@ -131,7 +135,7 @@ export function registerCommands(plugin: Scrobble) {
 				if (!checking) {
 					new SearchModal(
 						plugin.app,
-						"Album",
+						"album",
 						scrobbleSearchedSong,
 					).open();
 				}
@@ -160,8 +164,10 @@ export function registerCommands(plugin: Scrobble) {
 								recentlyPlayedFormatted,
 								scrobbleSearchedSong,
 							).open();
-						} catch (err) {
-							showNotice(err.message, true);
+						} catch (e) {
+							if (e instanceof Error) {
+								showNotice(e.message, true);
+							}
 						}
 					})();
 				}

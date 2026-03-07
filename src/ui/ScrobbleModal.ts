@@ -7,7 +7,7 @@ import {
 	TFile,
 } from "obsidian";
 import { appendInput, createAlbumFile, createTrackFile } from "src/Scrobbler";
-import { ItemFormatted } from "types";
+import { ItemFormattedType } from "types";
 import {
 	generateBlockId,
 	itemAsString,
@@ -25,9 +25,9 @@ export class ScrobbleModal extends Modal {
 	private folderPath: string;
 	private onSubmit: (input: string, blockId?: string) => Promise<void>;
 	private blockId: string | undefined;
-	private item: ItemFormatted;
+	private item: ItemFormattedType;
 	private input = "";
-	private pendingReferences: ItemFormatted[];
+	private pendingReferences: ItemFormattedType[];
 	private handleSubmit = async () => {
 		await this.createReferences();
 		await this.onSubmit(this.input, this.blockId);
@@ -68,11 +68,11 @@ export class ScrobbleModal extends Modal {
 
 			let file: TFile;
 
-			if (item.type === "Track") {
+			if (item.type === "track") {
 				file = await createTrackFile(this.app, this.settings, item);
 			}
 
-			if (item.type === "Album") {
+			if (item.type === "album") {
 				file = await createAlbumFile(this.app, this.settings, item);
 			}
 
@@ -103,7 +103,7 @@ export class ScrobbleModal extends Modal {
 	};
 
 	private handleChooseSuggestion = (
-		item: ItemFormatted,
+		item: ItemFormattedType,
 		textComponent: TextComponent,
 	) => {
 		if (this.item.id === item.id) {
@@ -122,7 +122,7 @@ export class ScrobbleModal extends Modal {
 	constructor(
 		app: App,
 		settings: scrobbleDefaultSettings,
-		item: ItemFormatted,
+		item: ItemFormattedType,
 		onSubmit: (input: string, blockId?: string) => Promise<void>,
 	) {
 		super(app);
@@ -162,7 +162,7 @@ export class ScrobbleModal extends Modal {
 		});
 
 		this.contentEl.createEl("div", {
-			text: this.item.type === "Track" ? this.item.progress : "",
+			text: this.item.type === "track" ? this.item.progress : "",
 			cls: "scrobble-modal-progress",
 		});
 
@@ -170,7 +170,7 @@ export class ScrobbleModal extends Modal {
 			"scrobble-modal-button-container",
 		);
 
-		const onChooseSuggestionCb = (item: ItemFormatted) => {
+		const onChooseSuggestionCb = (item: ItemFormattedType) => {
 			this.handleChooseSuggestion(item, textComponent);
 		};
 
@@ -182,13 +182,15 @@ export class ScrobbleModal extends Modal {
 			).open();
 		});
 
-		const searchButton = new ButtonComponent(buttonContainer)
+		// search button
+		new ButtonComponent(buttonContainer)
 			.setButtonText(
-				`Search ${this.item.type === "Track" ? "songs" : "albums"}`,
+				`Search ${this.item.type === "track" ? "songs" : "albums"}`,
 			)
 			.onClick(openSearchModal);
 
-		const saveButton = new ButtonComponent(buttonContainer)
+		// save button
+		new ButtonComponent(buttonContainer)
 			.setButtonText("Save")
 			.setCta()
 			.onClick(async () => {
