@@ -13,7 +13,6 @@ import {
 	itemAsString,
 	parseItemAsWikilink,
 	reloadOFMT,
-	requireAuth,
 	showNotice,
 } from "src/utils";
 import { SearchModal } from "./SearchModal";
@@ -183,13 +182,13 @@ export class ScrobbleModal extends Modal {
 			this.handleChooseSuggestion(item, textComponent);
 		};
 
-		const openSearchModal = requireAuth(this.app, async () => {
+		const openSearchModal = () => {
 			new SearchModal(
 				this.app,
 				this.item.type,
 				onChooseSuggestionCb,
 			).open();
-		});
+		};
 
 		// search button
 		new ButtonComponent(buttonContainer)

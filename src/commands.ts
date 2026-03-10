@@ -71,7 +71,6 @@ export function registerCommands(plugin: Scrobble) {
 
 	plugin.addCommand({
 		id: "log-currently-playing-track",
-		// eslint-disable-next-line obsidianmd/commands/no-plugin-name-in-command-name
 		name: "Scrobble currently playing song",
 		checkCallback: (checking: boolean) => {
 			if (isAuthenticated(plugin.app)) {
@@ -80,14 +79,12 @@ export function registerCommands(plugin: Scrobble) {
 				}
 				return true;
 			}
-			showNotice("Please connect your Spotify account", true);
 			return false;
 		},
 	});
 
 	plugin.addCommand({
 		id: "log-currently-playing-album",
-		// eslint-disable-next-line obsidianmd/commands/no-plugin-name-in-command-name
 		name: "Scrobble currently playing album",
 		checkCallback: (checking: boolean) => {
 			if (isAuthenticated(plugin.app)) {
@@ -96,7 +93,6 @@ export function registerCommands(plugin: Scrobble) {
 				}
 				return true;
 			}
-			showNotice("Please connect your Spotify account", true);
 			return false;
 		},
 	});
@@ -124,7 +120,6 @@ export function registerCommands(plugin: Scrobble) {
 				}
 				return true;
 			}
-			showNotice("Please connect your Spotify account", true);
 			return false;
 		},
 	});
@@ -143,7 +138,6 @@ export function registerCommands(plugin: Scrobble) {
 				}
 				return true;
 			}
-			showNotice("Please connect your Spotify account", true);
 			return false;
 		},
 	});
@@ -175,7 +169,6 @@ export function registerCommands(plugin: Scrobble) {
 				}
 				return true;
 			}
-			showNotice("Please connect your Spotify account", true);
 			return false;
 		},
 	});

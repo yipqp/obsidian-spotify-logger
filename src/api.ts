@@ -173,7 +173,7 @@ const getAccessToken = async (app: App) => {
 		} catch (e) {
 			showNotice("Error refreshing token", true);
 			console.error(e);
-			return;
+			return null;
 		}
 	}
 
@@ -191,11 +191,13 @@ export const isAuthenticated = (app: App) => {
 };
 
 export const callEndpoint = async (app: App, url: string): Promise<unknown> => {
-	if (!isAuthenticated(app)) {
+	const accessToken = (await getAccessToken(app)) ?? "";
+
+	if (!accessToken) {
+		app.saveLocalStorage("access_token", null);
+		app.saveLocalStorage("refresh_token", null);
 		throw new Error("Please connect your Spotify account");
 	}
-
-	const accessToken = (await getAccessToken(app)) ?? "";
 
 	const response = await requestUrl({
 		url,

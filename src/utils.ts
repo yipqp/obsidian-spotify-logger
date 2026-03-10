@@ -106,19 +106,6 @@ export const showNotice = (message: string, isError = false) => {
 	new Notice(`${messageFormatted}`, 3500);
 };
 
-export const requireAuth = (
-	app: App,
-	fn: () => Promise<void>,
-): (() => Promise<void>) => {
-	return async () => {
-		if (!isAuthenticated(app)) {
-			showNotice("Please connect your Spotify account", true);
-			return;
-		}
-		await fn();
-	};
-};
-
 // force Obsidian Front Matter Title to reload features, if installed
 export const reloadOFMT = (app: App) => {
 	const ofmtReloadID =
